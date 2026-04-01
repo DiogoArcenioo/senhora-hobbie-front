@@ -1,0 +1,67 @@
+.page {
+  position: relative;
+  min-height: 100vh;
+  isolation: isolate;
+}
+
+.main {
+  width: min(1120px, calc(100% - 2.5rem));
+  margin: 1.8rem auto 3rem;
+}
+
+.card {
+  border: 1px solid rgba(208, 100, 102, 0.3);
+  border-radius: 1.1rem;
+  background: #fff;
+  box-shadow: 0 14px 30px rgba(168, 25, 33, 0.12);
+  padding: 1.2rem;
+  display: grid;
+  gap: 0.52rem;
+}
+
+.card p {
+  margin: 0;
+  color: var(--color-brand-red-soft);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+
+.card h1 {
+  margin: 0;
+  color: var(--color-brand-red);
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.85rem, 5vw, 2.6rem);
+  line-height: 0.95;
+}
+
+.card span {
+  color: var(--color-text-soft);
+  line-height: 1.5;
+}
+
+.actions {
+  margin-top: 0.3rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.ok {
+  border-color: rgba(40, 130, 72, 0.45);
+}
+
+.warn {
+  border-color: rgba(204, 145, 12, 0.45);
+}
+
+.error {
+  border-color: rgba(180, 42, 56, 0.45);
+}
+
+@media (max-width: 900px) {
+  .main {
+    width: min(1120px, calc(100% - 1.4rem));
+  }
+}

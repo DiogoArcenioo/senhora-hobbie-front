@@ -1,0 +1,118 @@
+.page {
+  position: relative;
+  min-height: 100vh;
+  isolation: isolate;
+}
+
+.main {
+  width: min(1120px, calc(100% - 2.5rem));
+  margin: 1.8rem auto 3rem;
+  display: grid;
+  gap: 1.2rem;
+}
+
+.hero {
+  border: 1px solid rgba(208, 100, 102, 0.3);
+  border-radius: 1.1rem;
+  background: linear-gradient(145deg, rgba(255, 244, 240, 0.95), rgba(255, 250, 248, 0.98));
+  box-shadow: 0 14px 30px rgba(168, 25, 33, 0.12);
+  padding: 1.2rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.hero p {
+  margin: 0;
+  color: var(--color-brand-red-soft);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+
+.hero h1 {
+  margin: 0;
+  color: var(--color-brand-red);
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.85rem, 5vw, 2.6rem);
+  line-height: 0.95;
+}
+
+.hero span {
+  color: var(--color-text-soft);
+  line-height: 1.5;
+  max-width: 70ch;
+}
+
+.panel {
+  border: 1px solid rgba(208, 100, 102, 0.28);
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow: 0 12px 26px rgba(168, 25, 33, 0.1);
+  padding: 1rem;
+  display: grid;
+  gap: 0.62rem;
+}
+
+.badge {
+  margin: 0;
+  color: var(--color-brand-red-soft);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  font-weight: 700;
+}
+
+.panel h2 {
+  margin: 0;
+  color: var(--color-brand-red);
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 2rem;
+  line-height: 0.95;
+}
+
+.price {
+  color: var(--color-brand-red);
+  font-size: 1.2rem;
+}
+
+.panel p {
+  margin: 0;
+  color: var(--color-text-soft);
+  line-height: 1.45;
+}
+
+.infoList {
+  margin: 0;
+  padding-left: 1rem;
+  display: grid;
+  gap: 0.2rem;
+  color: var(--color-text-soft);
+}
+
+.error {
+  color: #8e0f16;
+  font-weight: 700;
+}
+
+.actions {
+  margin-top: 0.2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.62rem;
+}
+
+.actions button {
+  border: 0;
+}
+
+.actions button:disabled {
+  opacity: 0.75;
+  cursor: progress;
+}
+
+@media (max-width: 900px) {
+  .main {
+    width: min(1120px, calc(100% - 1.4rem));
+  }
+}

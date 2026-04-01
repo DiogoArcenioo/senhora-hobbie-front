@@ -1,64 +1,103 @@
-import Image from "next/image";
+﻿import Image from "next/image";
+import Link from "next/link";
+import HeaderAuthActions from "./components/header-auth-actions";
+import HeaderNavigation from "./components/header-navigation";
+import HomeIntroOverlay from "./components/home-intro-overlay";
+
+const benefits = ["Kit criativo mensal", "Desafios autorais", "Comunidade acolhedora"];
+
+const highlights = [
+  {
+    title: "Ritual de Criação",
+    description:
+      "Cada caixa chega com uma trilha de atividades leves para tornar o processo mais prazeroso.",
+  },
+  {
+    title: "Curadoria Delicada",
+    description:
+      "Materiais pensados para pintura, bordado, colagem e escrita com acabamento de ateliê.",
+  },
+  {
+    title: "Expressão sem Pressa",
+    description:
+      "Uma proposta para desacelerar, cuidar de si e criar algo seu com alegria.",
+  },
+];
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <div className="home-page">
+      <HomeIntroOverlay />
+
+      <div className="home-noise" aria-hidden="true" />
+
+      <header className="home-header reveal reveal-0">
+        <Link href="/" className="brand-link" aria-label="Clube das Jovens Senhoras">
+          <Image src="/logo.png" alt="Logo Clube das Jovens Senhoras" width={210} height={108} priority />
+        </Link>
+
+        <HeaderNavigation />
+
+        <HeaderAuthActions />
+      </header>
+
+      <main className="home-main">
+        <section className="hero" id="assinar">
+          <div className="hero-copy reveal reveal-1">
+            <p className="hero-kicker">Arte em casa, todo mês</p>
+            <h1>Seu hobby merece um clube delicado, criativo e cheio de cor.</h1>
+            <p className="hero-description">
+              Um espaço para explorar técnicas, desacelerar a rotina e transformar tempo livre em
+              criação com propósito.
+            </p>
+
+            <div className="hero-actions">
+              <Link className="btn btn-primary" href="/como-funciona">
+                Começar agora
+              </Link>
+              <Link className="btn btn-soft" href="/eventos">
+                Ver edição do mês
+              </Link>
+            </div>
+
+            <ul className="hero-tags">
+              {benefits.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="hero-art reveal reveal-2" aria-hidden="true">
+            <div className="art-card art-card-main">
+              <p>Ateliê do mês</p>
+              <strong>Colagem botânica</strong>
+              <span>Tintas, papéis especiais e guia ilustrado</span>
+            </div>
+
+            <div className="art-card art-card-mini">
+              <p>Edição 08</p>
+              <strong>Poética em aquarela</strong>
+            </div>
+
+            <div className="art-circle" />
+            <div className="art-splash art-splash-1" />
+            <div className="art-splash art-splash-2" />
+
+            <svg className="art-doodle" viewBox="0 0 220 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15 75C55 20 120 20 204 62" />
+              <path d="M74 111C90 92 132 84 176 95" />
+            </svg>
+          </div>
+        </section>
+
+        <section className="home-highlights reveal reveal-3" id="como-funciona">
+          {highlights.map((card) => (
+            <article key={card.title} className="highlight-card">
+              <h2>{card.title}</h2>
+              <p>{card.description}</p>
+            </article>
+          ))}
+        </section>
       </main>
     </div>
   );
