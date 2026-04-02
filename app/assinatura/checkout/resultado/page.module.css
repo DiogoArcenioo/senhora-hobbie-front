@@ -41,6 +41,16 @@
   line-height: 1.5;
 }
 
+.syncInfo {
+  color: #1b7c43;
+  font-weight: 600;
+}
+
+.syncError {
+  color: #a81921;
+  font-weight: 600;
+}
+
 .actions {
   margin-top: 0.3rem;
   display: flex;

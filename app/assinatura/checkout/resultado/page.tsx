@@ -2,13 +2,32 @@
 import Link from "next/link";
 import HeaderAuthActions from "@/app/components/header-auth-actions";
 import HeaderNavigation from "@/app/components/header-navigation";
+import CheckoutResultSync from "./checkout-result-sync";
 import styles from "./page.module.css";
 
 type CheckoutStatus = "success" | "pending" | "failure" | "unknown";
 
 type CheckoutResultPageProps = {
-  searchParams: Promise<{ status?: string | string[] }>;
+  searchParams: Promise<{
+    status?: string | string[];
+    payment_id?: string | string[];
+    collection_id?: string | string[];
+    preapproval_id?: string | string[];
+  }>;
 };
+
+function firstParam(value: string | string[] | undefined): string | null {
+  if (typeof value === "string" && value.trim()) {
+    return value.trim();
+  }
+
+  if (Array.isArray(value) && value.length > 0) {
+    const first = value.find((item) => typeof item === "string" && item.trim().length > 0);
+    return typeof first === "string" ? first.trim() : null;
+  }
+
+  return null;
+}
 
 function resolveStatus(statusParam: string | null): CheckoutStatus {
   if (statusParam === "success" || statusParam === "pending" || statusParam === "failure") {
@@ -55,6 +74,10 @@ export default async function CheckoutResultPage({ searchParams }: CheckoutResul
   const statusParam = resolvedSearchParams.status;
   const status = resolveStatus((Array.isArray(statusParam) ? statusParam[0] : statusParam ?? null));
   const statusInfo = resolveStatusText(status);
+  const paymentId =
+    firstParam(resolvedSearchParams.payment_id) ??
+    firstParam(resolvedSearchParams.collection_id);
+  const preapprovalId = firstParam(resolvedSearchParams.preapproval_id);
 
   return (
     <div className={styles.page}>
@@ -75,6 +98,7 @@ export default async function CheckoutResultPage({ searchParams }: CheckoutResul
           <p>Retorno do checkout</p>
           <h1>{statusInfo.title}</h1>
           <span>{statusInfo.description}</span>
+          <CheckoutResultSync paymentId={paymentId} preapprovalId={preapprovalId} />
 
           <div className={styles.actions}>
             <Link href="/assinatura" className="btn btn-primary">

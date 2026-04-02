@@ -173,7 +173,7 @@ export default function CheckoutClient({ planoId }: CheckoutClientProps) {
     setErrorMessage("");
 
     try {
-      const response = await fetch("/api/pagamentos/checkout-pro", {
+      const response = await fetch("/api/pagamentos/assinaturas/plano-associado", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -185,13 +185,13 @@ export default function CheckoutClient({ planoId }: CheckoutClientProps) {
       const payload = (await response.json().catch(() => null)) as CheckoutPayload | null;
 
       if (!response.ok) {
-        throw new Error(resolveErrorMessage(payload, "Nao foi possivel iniciar checkout no Mercado Pago."));
+        throw new Error(resolveErrorMessage(payload, "Nao foi possivel iniciar assinatura no Mercado Pago."));
       }
 
       const checkoutUrl = typeof payload?.checkout_url === "string" ? payload.checkout_url : "";
 
       if (!checkoutUrl) {
-        throw new Error("URL de checkout nao retornada pelo Mercado Pago.");
+        throw new Error("URL de autorizacao nao retornada pelo Mercado Pago.");
       }
 
       window.location.assign(checkoutUrl);
@@ -199,7 +199,7 @@ export default function CheckoutClient({ planoId }: CheckoutClientProps) {
       setErrorMessage(
         error instanceof Error && error.message
           ? error.message
-          : "Erro inesperado ao iniciar checkout.",
+          : "Erro inesperado ao iniciar assinatura.",
       );
       setIsCreatingCheckout(false);
     }
@@ -255,7 +255,7 @@ export default function CheckoutClient({ planoId }: CheckoutClientProps) {
           onClick={handleCheckout}
           disabled={isCreatingCheckout || !plano.ativo}
         >
-          {isCreatingCheckout ? "Redirecionando..." : "Pagar com Mercado Pago"}
+          {isCreatingCheckout ? "Redirecionando..." : "Assinar com Mercado Pago"}
         </button>
       </div>
     </section>
