@@ -20,20 +20,6 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Google Drive Picker (Admin)
-
-To enable selecting Home images from Google Drive, configure:
-
-```env
-NEXT_PUBLIC_GOOGLE_API_KEY=your_google_api_key
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_oauth_client_id
-NEXT_PUBLIC_GOOGLE_APP_ID=your_google_project_number
-```
-
-- `NEXT_PUBLIC_GOOGLE_APP_ID` is optional but recommended.
-- The admin flow appears only for users whose JWT has an admin role (`admin`, `adm`, or equivalent claims).
-- Uploaded files are persisted locally in `public/uploads/home/` and metadata in `data/home-images.json`.
-
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

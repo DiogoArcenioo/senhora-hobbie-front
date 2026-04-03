@@ -14,11 +14,13 @@ const LOGGED_OUT_LINKS: NavLink[] = [
   { href: "/", label: "Inicio" },
   { href: "/eventos", label: "Eventos" },
   { href: "/como-funciona", label: "Como Funciona" },
+  { href: "/#contato", label: "Contato" },
 ];
 
 const LOGGED_IN_LINKS: NavLink[] = [
   { href: "/eventos", label: "Eventos" },
   { href: "/assinatura", label: "Assinatura" },
+  { href: "/#contato", label: "Contato" },
 ];
 
 export default function HeaderNavigation() {

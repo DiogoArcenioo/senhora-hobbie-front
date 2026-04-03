@@ -3,7 +3,6 @@ import Link from "next/link";
 import HeaderAuthActions from "./components/header-auth-actions";
 import HeaderNavigation from "./components/header-navigation";
 import HomeIntroOverlay from "./components/home-intro-overlay";
-import AdminDriveImageSlot from "./components/admin-drive-image-slot";
 
 const benefits = ["Kit criativo mensal", "Desafios autorais", "Comunidade acolhedora"];
 
@@ -111,10 +110,18 @@ export default function Home() {
             </p>
           </div>
 
-          <AdminDriveImageSlot
-            sectionKey="quem-somos"
-            alt="Foto institucional da equipe ou do atelie"
-          />
+          <div className="about-image-placeholder" role="img" aria-label="Espaço para foto da equipe ou do ateliê">
+            <span>Imagem em destaque</span>
+            <strong>Pronto para receber sua foto</strong>
+          </div>
+        </section>
+
+        <section className="home-contact reveal reveal-4" id="contato">
+          <p className="contact-kicker">Contato</p>
+          <h2>Fale com a gente</h2>
+          <a className="contact-phone" href="tel:+554891644082">
+            48 9164-4082
+          </a>
         </section>
       </main>
     </div>
