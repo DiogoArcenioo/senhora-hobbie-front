@@ -1155,14 +1155,20 @@ a {
 
 .event-admin-feedback {
   margin: 0;
+  border-radius: 0.6rem;
+  padding: 0.55rem 0.72rem;
   font-size: 0.9rem;
 }
 
 .event-admin-feedback-error {
+  border: 1px solid rgba(145, 23, 36, 0.25);
+  background: rgba(145, 23, 36, 0.08);
   color: #911724;
 }
 
 .event-admin-feedback-success {
+  border: 1px solid rgba(39, 101, 58, 0.25);
+  background: rgba(39, 101, 58, 0.08);
   color: #27653a;
 }
 

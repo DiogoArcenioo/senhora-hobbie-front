@@ -325,6 +325,27 @@ export default function EventsDynamicContent() {
       return;
     }
 
+    const inicioDate = new Date(formState.inicioEm);
+
+    if (Number.isNaN(inicioDate.getTime())) {
+      setFormError("Data de inicio invalida.");
+      return;
+    }
+
+    if (formState.fimEm.trim()) {
+      const fimDate = new Date(formState.fimEm);
+
+      if (Number.isNaN(fimDate.getTime())) {
+        setFormError("Data de fim invalida.");
+        return;
+      }
+
+      if (fimDate.getTime() < inicioDate.getTime()) {
+        setFormError("Data de fim nao pode ser anterior ao inicio.");
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     setFormError("");
     setFormSuccess("");
@@ -406,7 +427,7 @@ export default function EventsDynamicContent() {
             <h2>Cadastrar evento com capa e album</h2>
           </div>
 
-          <form className="event-admin-form" onSubmit={submitEvento}>
+          <form className="event-admin-form" onSubmit={submitEvento} noValidate>
             <label>
               Titulo
               <input
@@ -414,7 +435,6 @@ export default function EventsDynamicContent() {
                 value={formState.titulo}
                 onChange={(e) => updateField("titulo", e.target.value)}
                 placeholder="Ex.: Aquarela Botanica em Camadas"
-                required
                 disabled={isSubmitting}
               />
             </label>
@@ -425,7 +445,6 @@ export default function EventsDynamicContent() {
                 value={formState.descricaoResumo}
                 onChange={(e) => updateField("descricaoResumo", e.target.value)}
                 placeholder="Descricao curta para o card"
-                required
                 disabled={isSubmitting}
               />
             </label>
@@ -468,7 +487,6 @@ export default function EventsDynamicContent() {
                 type="datetime-local"
                 value={formState.inicioEm}
                 onChange={(e) => updateField("inicioEm", e.target.value)}
-                required
                 disabled={isSubmitting}
               />
             </label>
@@ -485,7 +503,7 @@ export default function EventsDynamicContent() {
 
             <label>
               Foto de capa
-              <input ref={coverInputRef} type="file" accept="image/*" required disabled={isSubmitting} />
+              <input ref={coverInputRef} type="file" accept="image/*" disabled={isSubmitting} />
             </label>
 
             <label>
