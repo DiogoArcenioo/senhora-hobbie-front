@@ -15,6 +15,10 @@ type AuthUser = {
   tipo?: string;
 };
 
+type JwtPayload = {
+  tipo?: string;
+};
+
 type ImagemPayload = {
   imagem?: {
     urlPublica?: string;
@@ -50,17 +54,49 @@ function isAdminUser(user: AuthUser | null): boolean {
   return typeof user?.tipo === "string" && user.tipo.trim().toUpperCase() === "ADM";
 }
 
+function decodeJwtPayload(token: string): JwtPayload | null {
+  const parts = token.split(".");
+
+  if (parts.length < 2) {
+    return null;
+  }
+
+  try {
+    const normalizedPayload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const paddedPayload = normalizedPayload.padEnd(Math.ceil(normalizedPayload.length / 4) * 4, "=");
+    const decodedPayload = atob(paddedPayload);
+    const payload = JSON.parse(decodedPayload) as JwtPayload;
+
+    if (!payload || typeof payload !== "object") {
+      return null;
+    }
+
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
 export default function HomeFeaturedImage() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [isAdminFromToken, setIsAdminFromToken] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const syncAuthUser = () => {
       setAuthUser(readAuthUser());
+
+      const token = window.localStorage.getItem(TOKEN_STORAGE_KEY) ?? "";
+      const jwtPayload = decodeJwtPayload(token);
+      const isAdmin =
+        typeof jwtPayload?.tipo === "string" &&
+        jwtPayload.tipo.trim().toUpperCase() === "ADM";
+
+      setIsAdminFromToken(isAdmin);
     };
 
     syncAuthUser();
@@ -119,7 +155,7 @@ export default function HomeFeaturedImage() {
     };
   }, []);
 
-  const isAdmin = useMemo(() => isAdminUser(authUser), [authUser]);
+  const isAdmin = useMemo(() => isAdminUser(authUser) || isAdminFromToken, [authUser, isAdminFromToken]);
 
   const openFilePicker = () => {
     if (isUploading) {

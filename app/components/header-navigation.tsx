@@ -18,6 +18,7 @@ const LOGGED_OUT_LINKS: NavLink[] = [
 ];
 
 const LOGGED_IN_LINKS: NavLink[] = [
+  { href: "/", label: "Inicio" },
   { href: "/eventos", label: "Eventos" },
   { href: "/assinatura", label: "Assinatura" },
   { href: "/#contato", label: "Contato" },

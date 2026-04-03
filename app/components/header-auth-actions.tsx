@@ -49,6 +49,7 @@ type ToastMessage = {
 type JwtPayload = {
   sub?: string;
   email?: string;
+  tipo?: string;
 };
 
 type MeResponse = {
@@ -230,10 +231,28 @@ export default function HeaderAuthActions() {
       if (userFromApi) {
         localStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(userFromApi));
         setAuthenticatedUser(userFromApi);
+        emitAuthSessionChanged();
         return;
       }
 
       if (userFromStorage) {
+        const tokenPayload = decodeJwtPayload(token);
+
+        if (
+          !userFromStorage.tipo &&
+          typeof tokenPayload?.tipo === "string" &&
+          tokenPayload.tipo.trim()
+        ) {
+          const syncedUser = {
+            ...userFromStorage,
+            tipo: tokenPayload.tipo.trim().toUpperCase(),
+          };
+
+          localStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(syncedUser));
+          setAuthenticatedUser(syncedUser);
+          emitAuthSessionChanged();
+        }
+
         return;
       }
 
@@ -242,11 +261,15 @@ export default function HeaderAuthActions() {
         id: typeof tokenPayload?.sub === "string" ? tokenPayload.sub : undefined,
         nome: "Minha conta",
         email: typeof tokenPayload?.email === "string" ? tokenPayload.email : "",
-        tipo: undefined,
+        tipo:
+          typeof tokenPayload?.tipo === "string" && tokenPayload.tipo.trim()
+            ? tokenPayload.tipo.trim().toUpperCase()
+            : undefined,
       };
 
       localStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(fallbackUser));
       setAuthenticatedUser(fallbackUser);
+      emitAuthSessionChanged();
     };
 
     void hydrateAuthenticatedUser();
