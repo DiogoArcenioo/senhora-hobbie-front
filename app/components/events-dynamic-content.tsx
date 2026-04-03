@@ -180,6 +180,20 @@ const EMPTY_FORM: EventoFormState = {
   fimEm: "",
 };
 
+function normalizeSubmitError(message?: string): string {
+  if (!message || !message.trim()) {
+    return "Nao foi possivel cadastrar o evento.";
+  }
+
+  const normalized = message.trim().toLowerCase();
+
+  if (normalized === "file too large") {
+    return "Uma ou mais imagens excedem o limite de 25MB por arquivo.";
+  }
+
+  return message;
+}
+
 export default function EventsDynamicContent() {
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [isAdminFromToken, setIsAdminFromToken] = useState(false);
@@ -393,7 +407,7 @@ export default function EventsDynamicContent() {
       const data = (await response.json().catch(() => null)) as { message?: string } | null;
 
       if (!response.ok) {
-        setFormError(data?.message ?? "Nao foi possivel cadastrar o evento.");
+        setFormError(normalizeSubmitError(data?.message));
         return;
       }
 
@@ -428,7 +442,7 @@ export default function EventsDynamicContent() {
           </div>
 
           <form className="event-admin-form" onSubmit={submitEvento} noValidate>
-            <label>
+            <label className="event-admin-field">
               Titulo
               <input
                 type="text"
@@ -439,7 +453,7 @@ export default function EventsDynamicContent() {
               />
             </label>
 
-            <label>
+            <label className="event-admin-field event-admin-field-wide">
               Resumo
               <textarea
                 value={formState.descricaoResumo}
@@ -449,7 +463,7 @@ export default function EventsDynamicContent() {
               />
             </label>
 
-            <label>
+            <label className="event-admin-field event-admin-field-wide">
               Descricao detalhada (album)
               <textarea
                 value={formState.descricaoDetalhada}
@@ -459,7 +473,7 @@ export default function EventsDynamicContent() {
               />
             </label>
 
-            <label>
+            <label className="event-admin-field">
               Local (nome)
               <input
                 type="text"
@@ -470,7 +484,7 @@ export default function EventsDynamicContent() {
               />
             </label>
 
-            <label>
+            <label className="event-admin-field">
               Endereco (opcional)
               <input
                 type="text"
@@ -481,7 +495,7 @@ export default function EventsDynamicContent() {
               />
             </label>
 
-            <label>
+            <label className="event-admin-field">
               Inicio
               <input
                 type="datetime-local"
@@ -491,7 +505,7 @@ export default function EventsDynamicContent() {
               />
             </label>
 
-            <label>
+            <label className="event-admin-field">
               Fim (opcional)
               <input
                 type="datetime-local"
@@ -501,12 +515,12 @@ export default function EventsDynamicContent() {
               />
             </label>
 
-            <label>
+            <label className="event-admin-field">
               Foto de capa
               <input ref={coverInputRef} type="file" accept="image/*" disabled={isSubmitting} />
             </label>
 
-            <label>
+            <label className="event-admin-field event-admin-field-wide">
               Fotos do album (multiplas)
               <input ref={photosInputRef} type="file" accept="image/*" multiple disabled={isSubmitting} />
             </label>
