@@ -1,47 +1,50 @@
-﻿import Image from "next/image";
+import Image from "next/image";
 import Link from "next/link";
 import HeaderAuthActions from "../components/header-auth-actions";
 import HeaderNavigation from "../components/header-navigation";
+import HomeIntroOverlay from "../components/home-intro-overlay";
 
 const pastEvents = [
   {
     title: "Piquenique de Pintura ao Ar Livre",
     date: "09 de fevereiro de 2026",
     description:
-      "Nosso primeiro encontro do ano reuniu aquarela e observação da natureza com exercícios de composição e luz.",
+      "Nosso primeiro encontro do ano reuniu aquarela e observacao da natureza com exercicios de composicao e luz.",
   },
   {
-    title: "Oficina de Bordado Contemporâneo",
+    title: "Oficina de Bordado Contemporaneo",
     date: "23 de fevereiro de 2026",
     description:
-      "Trabalhamos pontos livres e acabamento em bastidor, com foco em textura e criação intuitiva.",
+      "Trabalhamos pontos livres e acabamento em bastidor, com foco em textura e criacao intuitiva.",
   },
   {
-    title: "Laboratório de Colagem Poética",
-    date: "08 de março de 2026",
+    title: "Laboratorio de Colagem Poetica",
+    date: "08 de marco de 2026",
     description:
-      "Uma tarde de narrativa visual com recortes, camadas de tinta e construção de paletas autorais.",
+      "Uma tarde de narrativa visual com recortes, camadas de tinta e construcao de paletas autorais.",
   },
   {
-    title: "Sessão de Caderno Criativo",
-    date: "22 de março de 2026",
+    title: "Sessao de Caderno Criativo",
+    date: "22 de marco de 2026",
     description:
-      "Exploramos lettering, desenho espontâneo e registros visuais para manter uma rotina artística leve.",
+      "Exploramos lettering, desenho espontaneo e registros visuais para manter uma rotina artistica leve.",
   },
   {
-    title: "Ateliê de Texturas em Tinta",
-    date: "29 de março de 2026",
+    title: "Atelie de Texturas em Tinta",
+    date: "29 de marco de 2026",
     description:
-      "Encontro dedicado a técnicas de carimbo artesanal, manchas controladas e composição final em dupla.",
+      "Encontro dedicado a tecnicas de carimbo artesanal, manchas controladas e composicao final em dupla.",
   },
 ];
 
 export default function EventsPage() {
   return (
     <div className="events-page">
+      <HomeIntroOverlay />
+
       <div className="home-noise" aria-hidden="true" />
 
-      <header className="home-header">
+      <header className="home-header reveal reveal-0">
         <Link href="/" className="brand-link" aria-label="Clube das Jovens Senhoras">
           <Image src="/logo.png" alt="Logo Clube das Jovens Senhoras" width={210} height={108} priority />
         </Link>
@@ -52,7 +55,7 @@ export default function EventsPage() {
       </header>
 
       <main className="events-main">
-        <section className="next-event-panel">
+        <section className="next-event-panel reveal reveal-1">
           <div className="calendar-card" aria-hidden="true">
             <span className="calendar-month">ABR 2026</span>
             <strong className="calendar-day">12</strong>
@@ -60,14 +63,14 @@ export default function EventsPage() {
           </div>
 
           <div className="next-event-description">
-            <p>Próximo encontro</p>
-            <h1>Aquarela Botânica em Camadas</h1>
-            <h2>12 de abril de 2026 às 15h</h2>
-            <span>Ateliê da Senhora Hobbie • 2h30 de prática guiada + café criativo</span>
+            <p>Proximo encontro</p>
+            <h1>Aquarela Botanica em Camadas</h1>
+            <h2>12 de abril de 2026 as 15h</h2>
+            <span>Atelie da Senhora Hobbie - 2h30 de pratica guiada + cafe criativo</span>
           </div>
         </section>
 
-        <section className="past-events">
+        <section className="past-events reveal reveal-2">
           <h3>Eventos passados</h3>
 
           <div className="past-events-list">
@@ -76,7 +79,7 @@ export default function EventsPage() {
                 <div className="past-event-cover">
                   <Image
                     src="/event-cover-placeholder.svg"
-                    alt={`Capa simbólica do evento ${event.title}`}
+                    alt={`Capa simbolica do evento ${event.title}`}
                     width={92}
                     height={92}
                   />

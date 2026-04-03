@@ -118,8 +118,8 @@ export default function Home() {
 
         <section className="home-contact reveal reveal-4" id="contato">
           <p className="contact-kicker">Contato</p>
-          <h2>Fale com a gente</h2>
-          <a className="contact-phone" href="tel:+554891644082">
+          <h2>Fale com a gente!</h2>
+          <a className="contact-phone" href="tel:+5548991644082">
             48 9164-4082
           </a>
         </section>
