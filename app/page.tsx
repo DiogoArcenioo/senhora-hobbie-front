@@ -1,6 +1,7 @@
 ﻿import Image from "next/image";
 import Link from "next/link";
 import HeaderAuthActions from "./components/header-auth-actions";
+import HomeFeaturedImage from "./components/home-featured-image";
 import HeaderNavigation from "./components/header-navigation";
 import HomeIntroOverlay from "./components/home-intro-overlay";
 
@@ -110,10 +111,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="about-image-placeholder" role="img" aria-label="Espaço para foto da equipe ou do ateliê">
-            <span>Imagem em destaque</span>
-            <strong>Pronto para receber sua foto</strong>
-          </div>
+          <HomeFeaturedImage />
         </section>
 
         <section className="home-contact reveal reveal-4" id="contato">

@@ -13,6 +13,7 @@ type UsuarioPayload = {
   id?: string;
   nome?: string;
   email?: string;
+  tipo?: string;
 };
 
 function decodeJwtPayload(token: string): JwtPayload | null {
@@ -75,13 +76,14 @@ export async function GET(request: Request) {
 
     const nome = typeof backendPayload?.nome === "string" ? backendPayload.nome.trim() : "";
     const email = typeof backendPayload?.email === "string" ? backendPayload.email.trim() : "";
+    const tipo = typeof backendPayload?.tipo === "string" ? backendPayload.tipo.trim().toUpperCase() : "";
     const id = typeof backendPayload?.id === "string" ? backendPayload.id : undefined;
 
     if (!nome) {
       return NextResponse.json({ message: "Perfil sem nome cadastrado." }, { status: 422 });
     }
 
-    return NextResponse.json({ id, nome, email }, { status: 200 });
+    return NextResponse.json({ id, nome, email, tipo }, { status: 200 });
   } catch {
     return NextResponse.json(
       { message: "Erro inesperado ao consultar perfil." },

@@ -21,12 +21,14 @@ type AuthUser = {
   id?: string;
   nome: string;
   email: string;
+  tipo?: string;
 };
 
 type AuthPayloadUser = {
   id?: string;
   nome?: string;
   email?: string;
+  tipo?: string;
 };
 
 type AuthPayload = {
@@ -53,6 +55,7 @@ type MeResponse = {
   id?: string;
   nome?: string;
   email?: string;
+  tipo?: string;
 };
 
 const TOAST_DURATION_MS = 4200;
@@ -120,6 +123,7 @@ function readStoredUser(): AuthUser | null {
         id: typeof parsedValue.id === "string" && parsedValue.id.trim() ? parsedValue.id : undefined,
         nome: parsedValue.nome.trim(),
         email: parsedValue.email.trim(),
+        tipo: typeof parsedValue.tipo === "string" ? parsedValue.tipo.trim().toUpperCase() : undefined,
       };
     }
   } catch {
@@ -147,6 +151,7 @@ function resolveAuthenticatedUser(
     id: payloadUser && typeof payloadUser.id === "string" ? payloadUser.id : undefined,
     nome,
     email,
+    tipo: payloadUser && typeof payloadUser.tipo === "string" ? payloadUser.tipo.trim().toUpperCase() : undefined,
   };
 }
 
@@ -168,6 +173,7 @@ async function fetchAuthenticatedUser(token: string, tokenType: string): Promise
 
     const nome = typeof mePayload.nome === "string" ? mePayload.nome.trim() : "";
     const email = typeof mePayload.email === "string" ? mePayload.email.trim() : "";
+    const tipo = typeof mePayload.tipo === "string" ? mePayload.tipo.trim().toUpperCase() : undefined;
 
     if (!nome) {
       return null;
@@ -177,6 +183,7 @@ async function fetchAuthenticatedUser(token: string, tokenType: string): Promise
       id: typeof mePayload.id === "string" ? mePayload.id : undefined,
       nome,
       email,
+      tipo,
     };
   } catch {
     return null;
@@ -235,6 +242,7 @@ export default function HeaderAuthActions() {
         id: typeof tokenPayload?.sub === "string" ? tokenPayload.sub : undefined,
         nome: "Minha conta",
         email: typeof tokenPayload?.email === "string" ? tokenPayload.email : "",
+        tipo: undefined,
       };
 
       localStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(fallbackUser));
