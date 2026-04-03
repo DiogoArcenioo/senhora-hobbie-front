@@ -98,6 +98,23 @@ export default function Home() {
             </article>
           ))}
         </section>
+
+        <section className="home-about reveal reveal-4" id="quem-somos">
+          <div className="about-copy">
+            <p className="about-kicker">Quem Somos</p>
+            <h2>Um clube criativo feito para mulheres que querem criar com leveza.</h2>
+            <p>
+              O Clube das Jovens Senhoras nasceu para transformar o tempo livre em um ritual de
+              autocuidado, arte e conexão. A cada edição, montamos experiências acolhedoras para
+              você explorar novos hobbies no seu ritmo.
+            </p>
+          </div>
+
+          <div className="about-image-placeholder" role="img" aria-label="Espaço para foto da equipe ou do ateliê">
+            <span>Imagem em destaque</span>
+            <strong>Pronto para receber sua foto</strong>
+          </div>
+        </section>
       </main>
     </div>
   );
