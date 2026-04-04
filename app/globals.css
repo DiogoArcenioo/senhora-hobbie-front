@@ -1462,46 +1462,58 @@ a {
 .event-image-zoom-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 75;
-  background: radial-gradient(circle at top, rgba(63, 13, 20, 0.48) 0%, rgba(20, 6, 10, 0.86) 70%);
+  z-index: 110;
+  background: rgba(24, 10, 14, 0.68);
   backdrop-filter: blur(4px);
   display: grid;
   place-items: center;
-  padding: 1.1rem;
+  padding: 1rem;
 }
 
 .event-image-zoom-modal {
-  width: min(780px, calc(100vw - 2rem));
-  max-height: 86vh;
+  width: min(920px, calc(100vw - 2rem));
+  max-height: 90vh;
   position: relative;
-  border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  background: rgba(17, 7, 10, 0.55);
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.46);
-  padding: 0.75rem 0.75rem 0.6rem;
+  border-radius: 1.1rem;
+  border: 1px solid rgba(208, 100, 102, 0.25);
+  background: #fffaf8;
+  box-shadow: 0 30px 52px rgba(10, 3, 4, 0.46);
+  padding: 0.72rem;
   display: grid;
-  justify-items: center;
+  gap: 0.52rem;
+}
+
+.event-image-zoom-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.event-image-zoom-header p {
+  margin: 0;
+  color: var(--color-brand-red-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.74rem;
+  font-weight: 700;
 }
 
 .event-image-zoom-modal .event-album-close {
-  position: absolute;
-  top: 0.65rem;
-  right: 0.65rem;
-  border-color: rgba(255, 255, 255, 0.46);
-  background: rgba(255, 255, 255, 0.97);
+  border-color: rgba(168, 25, 33, 0.35);
+  background: #fff;
   color: #8e1a25;
-  z-index: 2;
 }
 
 .event-image-zoomed {
   width: auto;
   max-width: 100%;
-  max-height: min(72vh, 760px);
+  max-height: min(76vh, 780px);
   margin: 0 auto;
   object-fit: contain;
   border-radius: 0.8rem;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(208, 100, 102, 0.2);
+  background: #fff;
 }
 
 @media (max-width: 620px) {
@@ -1511,12 +1523,12 @@ a {
 
   .event-image-zoom-modal {
     width: calc(100vw - 1rem);
-    max-height: 84vh;
+    max-height: 88vh;
     padding: 0.5rem;
   }
 
   .event-image-zoomed {
-    max-height: min(68vh, 560px);
+    max-height: min(72vh, 560px);
     border-radius: 0.65rem;
   }
 }

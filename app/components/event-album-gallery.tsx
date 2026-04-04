@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 
 type AlbumFoto = {
   id: string;
@@ -22,6 +23,7 @@ type ZoomedImage = {
 
 export default function EventAlbumGallery({ titulo, capaUrl, fotos }: Props) {
   const [zoomedImage, setZoomedImage] = useState<ZoomedImage | null>(null);
+  const canUsePortal = typeof document !== "undefined";
 
   const images = useMemo(() => {
     const fromCover = capaUrl
@@ -53,15 +55,19 @@ export default function EventAlbumGallery({ titulo, capaUrl, fotos }: Props) {
         ))}
       </div>
 
-      {zoomedImage ? (
+      {canUsePortal && zoomedImage ? createPortal(
         <div className="event-image-zoom-backdrop" onClick={() => setZoomedImage(null)} role="presentation">
           <section className="event-image-zoom-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-            <button type="button" className="event-album-close" onClick={() => setZoomedImage(null)}>
-              Fechar
-            </button>
+            <div className="event-image-zoom-header">
+              <p>Visualizacao da foto</p>
+              <button type="button" className="event-album-close" onClick={() => setZoomedImage(null)}>
+                Fechar
+              </button>
+            </div>
             <img src={zoomedImage.src} alt={zoomedImage.alt} className="event-image-zoomed" />
           </section>
-        </div>
+        </div>,
+        document.body,
       ) : null}
     </>
   );
