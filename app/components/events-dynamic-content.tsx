@@ -234,6 +234,7 @@ export default function EventsDynamicContent() {
   const [albumEvento, setAlbumEvento] = useState<EventoAlbum | null>(null);
   const [albumError, setAlbumError] = useState("");
   const [isAlbumLoading, setIsAlbumLoading] = useState(false);
+  const [zoomedImage, setZoomedImage] = useState<{ src: string; alt: string } | null>(null);
 
   const coverInputRef = useRef<HTMLInputElement | null>(null);
   const photosInputRef = useRef<HTMLInputElement | null>(null);
@@ -336,6 +337,7 @@ export default function EventsDynamicContent() {
     setAlbumEvento(null);
     setAlbumError("");
     setIsAlbumLoading(false);
+    setZoomedImage(null);
   };
 
   const resetFormState = () => {
@@ -391,6 +393,14 @@ export default function EventsDynamicContent() {
     setIsFormModalOpen(false);
     setIsSubmitting(false);
     setFormError("");
+  };
+
+  const openZoomedImage = (src: string, alt: string) => {
+    setZoomedImage({ src, alt });
+  };
+
+  const closeZoomedImage = () => {
+    setZoomedImage(null);
   };
 
   const updateField = (field: keyof EventoFormState, value: string) => {
@@ -869,11 +879,36 @@ export default function EventsDynamicContent() {
 
                 <div className="event-album-grid">
                   {albumEvento.capaUrl ? (
-                    <img src={albumEvento.capaUrl} alt={`Capa do evento ${albumEvento.titulo}`} className="event-album-image" />
+                    <button
+                      type="button"
+                      className="event-album-image-button"
+                      onClick={() =>
+                        openZoomedImage(albumEvento.capaUrl as string, `Capa do evento ${albumEvento.titulo}`)
+                      }
+                    >
+                      <img
+                        src={albumEvento.capaUrl}
+                        alt={`Capa do evento ${albumEvento.titulo}`}
+                        className="event-album-image"
+                      />
+                    </button>
                   ) : null}
 
                   {albumEvento.fotos.map((foto) => (
-                    <img key={foto.id} src={foto.url} alt={foto.legenda || `Foto do evento ${albumEvento.titulo}`} className="event-album-image" />
+                    <button
+                      type="button"
+                      key={foto.id}
+                      className="event-album-image-button"
+                      onClick={() =>
+                        openZoomedImage(foto.url, foto.legenda || `Foto do evento ${albumEvento.titulo}`)
+                      }
+                    >
+                      <img
+                        src={foto.url}
+                        alt={foto.legenda || `Foto do evento ${albumEvento.titulo}`}
+                        className="event-album-image"
+                      />
+                    </button>
                   ))}
                 </div>
               </>
@@ -881,6 +916,17 @@ export default function EventsDynamicContent() {
           </section>
         </div>
       )}
+
+      {zoomedImage ? (
+        <div className="event-image-zoom-backdrop" onClick={closeZoomedImage} role="presentation">
+          <section className="event-image-zoom-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="event-album-close" onClick={closeZoomedImage}>
+              Fechar
+            </button>
+            <img src={zoomedImage.src} alt={zoomedImage.alt} className="event-image-zoomed" />
+          </section>
+        </div>
+      ) : null}
     </main>
   );
 }
