@@ -1183,11 +1183,11 @@ a {
 }
 
 .event-field-title {
-  grid-column: span 3;
+  grid-column: span 4;
 }
 
 .event-field-resumo {
-  grid-column: span 6;
+  grid-column: span 8;
 }
 
 .event-field-detalhada {
@@ -1203,19 +1203,19 @@ a {
 }
 
 .event-field-inicio {
-  grid-column: span 3;
+  grid-column: span 4;
 }
 
 .event-field-fim {
-  grid-column: span 3;
+  grid-column: span 4;
 }
 
 .event-field-capa {
-  grid-column: span 3;
+  grid-column: span 4;
 }
 
 .event-field-fotos {
-  grid-column: span 6;
+  grid-column: 1 / -1;
 }
 
 .event-admin-form input,
@@ -1232,7 +1232,12 @@ a {
 }
 
 .event-admin-form textarea {
-  min-height: 90px;
+  min-height: 3rem;
+  resize: none;
+}
+
+.event-field-detalhada textarea {
+  min-height: 5.8rem;
   resize: vertical;
 }
 

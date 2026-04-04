@@ -721,7 +721,8 @@ export default function EventsDynamicContent() {
 
               <label className="event-admin-field event-admin-field-wide event-field-resumo">
                 Resumo
-                <textarea
+                <input
+                  type="text"
                   value={formState.descricaoResumo}
                   onChange={(e) => updateField("descricaoResumo", e.target.value)}
                   placeholder="Descricao curta para o card"
