@@ -1,0 +1,81 @@
+.main {
+  width: min(1120px, calc(100% - 2.5rem));
+  margin: 1.8rem auto 3rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.hero {
+  border: 1px solid rgba(208, 100, 102, 0.28);
+  border-radius: 1rem;
+  background: linear-gradient(140deg, rgba(255, 244, 239, 0.95) 0%, rgba(255, 251, 249, 0.98) 100%);
+  box-shadow: 0 14px 32px rgba(168, 25, 33, 0.1);
+  padding: 1rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.kicker {
+  margin: 0;
+  color: var(--color-brand-red-soft);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+
+.hero h1 {
+  margin: 0;
+  color: var(--color-brand-red);
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.9rem, 4vw, 2.8rem);
+  line-height: 1;
+}
+
+.hero span {
+  color: var(--color-text-soft);
+  line-height: 1.5;
+}
+
+.meta {
+  color: var(--color-brand-red);
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+.gallerySection {
+  border: 1px solid rgba(208, 100, 102, 0.24);
+  border-radius: 1rem;
+  background: rgba(255, 248, 245, 0.96);
+  box-shadow: 0 12px 28px rgba(168, 25, 33, 0.08);
+  padding: 0.9rem;
+}
+
+.errorCard {
+  border: 1px solid rgba(208, 100, 102, 0.24);
+  border-radius: 1rem;
+  background: rgba(255, 248, 245, 0.96);
+  box-shadow: 0 12px 28px rgba(168, 25, 33, 0.08);
+  padding: 1rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.errorCard h1 {
+  margin: 0;
+  color: var(--color-brand-red);
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.7rem, 4vw, 2.3rem);
+  line-height: 1;
+}
+
+.errorCard p {
+  margin: 0;
+  color: var(--color-text-soft);
+}
+
+@media (max-width: 980px) {
+  .main {
+    width: min(1120px, calc(100% - 1.4rem));
+  }
+}

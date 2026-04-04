@@ -1485,6 +1485,30 @@ a {
   background: rgba(0, 0, 0, 0.3);
 }
 
+.event-page-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.62rem;
+}
+
+.event-page-gallery-button {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  cursor: zoom-in;
+  border-radius: 0.8rem;
+  overflow: hidden;
+  box-shadow: 0 10px 20px rgba(89, 17, 25, 0.12);
+}
+
+.event-page-gallery-image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+}
+
 .intro-overlay {
   position: fixed;
   inset: 0;

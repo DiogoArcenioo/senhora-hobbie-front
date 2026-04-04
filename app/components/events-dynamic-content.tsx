@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   AUTH_SESSION_EVENT,
   AUTH_USER_STORAGE_KEY,
@@ -50,10 +51,6 @@ type EventoAlbum = {
   localEndereco: string | null;
   capaUrl: string | null;
   fotos: AlbumFoto[];
-};
-
-type AlbumResponse = EventoAlbum & {
-  message?: string;
 };
 
 type EventoFormState = {
@@ -212,6 +209,7 @@ function normalizeSubmitError(message?: string): string {
 }
 
 export default function EventsDynamicContent() {
+  const router = useRouter();
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [isAdminFromToken, setIsAdminFromToken] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -307,30 +305,8 @@ export default function EventsDynamicContent() {
     void loadEventos();
   }, [loadEventos]);
 
-  const openAlbum = async (eventoId: string) => {
-    setAlbumEvento(null);
-    setAlbumError("");
-    setIsAlbumLoading(true);
-
-    try {
-      const response = await fetch(`/api/eventos/${encodeURIComponent(eventoId)}/album`, {
-        method: "GET",
-        cache: "no-store",
-      });
-
-      const payload = (await response.json().catch(() => null)) as AlbumResponse | null;
-
-      if (!response.ok) {
-        setAlbumError(payload?.message ?? "Nao foi possivel carregar o album.");
-        return;
-      }
-
-      setAlbumEvento(payload as EventoAlbum);
-    } catch {
-      setAlbumError("Erro inesperado ao carregar o album.");
-    } finally {
-      setIsAlbumLoading(false);
-    }
+  const openAlbum = (eventoId: string) => {
+    router.push(`/eventos/${encodeURIComponent(eventoId)}`);
   };
 
   const closeAlbum = () => {
