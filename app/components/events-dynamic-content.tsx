@@ -66,6 +66,8 @@ type EventoFormState = {
   fimEm: string;
 };
 
+type FormMode = "create" | "edit";
+
 function readAuthUser(): AuthUser | null {
   if (typeof window === "undefined") {
     return null;
@@ -170,6 +172,21 @@ function formatCalendarParts(value: string): { monthYear: string; day: string; w
   };
 }
 
+function toDateTimeLocalValue(value: string | null): string {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const timezoneOffsetMs = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - timezoneOffsetMs).toISOString().slice(0, 16);
+}
+
 const EMPTY_FORM: EventoFormState = {
   titulo: "",
   descricaoResumo: "",
@@ -182,7 +199,7 @@ const EMPTY_FORM: EventoFormState = {
 
 function normalizeSubmitError(message?: string): string {
   if (!message || !message.trim()) {
-    return "Nao foi possivel cadastrar o evento.";
+    return "Nao foi possivel concluir a operacao no evento.";
   }
 
   const normalized = message.trim().toLowerCase();
@@ -201,13 +218,23 @@ export default function EventsDynamicContent() {
   const [loadError, setLoadError] = useState("");
   const [proximoEvento, setProximoEvento] = useState<EventoResumo | null>(null);
   const [eventosPassados, setEventosPassados] = useState<EventoResumo[]>([]);
+
   const [formState, setFormState] = useState<EventoFormState>(EMPTY_FORM);
+  const [formMode, setFormMode] = useState<FormMode>("create");
+  const [editingEventoId, setEditingEventoId] = useState<string | null>(null);
+  const [existingPhotos, setExistingPhotos] = useState<AlbumFoto[]>([]);
+  const [removedPhotoIds, setRemovedPhotoIds] = useState<string[]>([]);
+
   const [formError, setFormError] = useState("");
   const [formSuccess, setFormSuccess] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeletingEvent, setIsDeletingEvent] = useState(false);
+
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [albumEvento, setAlbumEvento] = useState<EventoAlbum | null>(null);
   const [albumError, setAlbumError] = useState("");
   const [isAlbumLoading, setIsAlbumLoading] = useState(false);
+
   const coverInputRef = useRef<HTMLInputElement | null>(null);
   const photosInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -215,6 +242,12 @@ export default function EventsDynamicContent() {
     () => isAdmin(authUser) || isAdminFromToken,
     [authUser, isAdminFromToken],
   );
+
+  const readAuthHeader = () => {
+    const token = window.localStorage.getItem(TOKEN_STORAGE_KEY)?.trim() ?? "";
+    const tokenType = window.localStorage.getItem(TOKEN_TYPE_STORAGE_KEY)?.trim() || "Bearer";
+    return token ? `${tokenType} ${token}` : "";
+  };
 
   const syncAuth = useCallback(() => {
     setAuthUser(readAuthUser());
@@ -248,7 +281,7 @@ export default function EventsDynamicContent() {
       }
 
       setProximoEvento(payload?.proximoEvento ?? null);
-      setEventosPassados(Array.isArray(payload?.eventosPassados) ? payload!.eventosPassados : []);
+      setEventosPassados(Array.isArray(payload?.eventosPassados) ? payload.eventosPassados : []);
     } catch {
       setLoadError("Erro inesperado ao carregar os eventos.");
       setProximoEvento(null);
@@ -305,11 +338,89 @@ export default function EventsDynamicContent() {
     setIsAlbumLoading(false);
   };
 
+  const resetFormState = () => {
+    setFormState(EMPTY_FORM);
+    setEditingEventoId(null);
+    setExistingPhotos([]);
+    setRemovedPhotoIds([]);
+    setFormError("");
+
+    if (coverInputRef.current) {
+      coverInputRef.current.value = "";
+    }
+
+    if (photosInputRef.current) {
+      photosInputRef.current.value = "";
+    }
+  };
+
+  const openCreateModal = () => {
+    setFormMode("create");
+    resetFormState();
+    setIsFormModalOpen(true);
+  };
+
+  const openEditModal = (evento: EventoAlbum) => {
+    setFormMode("edit");
+    setEditingEventoId(evento.id);
+    setFormError("");
+    setFormState({
+      titulo: evento.titulo ?? "",
+      descricaoResumo: evento.descricaoResumo ?? "",
+      descricaoDetalhada: evento.descricaoDetalhada ?? "",
+      localNome: evento.localNome ?? "",
+      localEndereco: evento.localEndereco ?? "",
+      inicioEm: toDateTimeLocalValue(evento.inicioEm),
+      fimEm: toDateTimeLocalValue(evento.fimEm),
+    });
+    setExistingPhotos(Array.isArray(evento.fotos) ? evento.fotos : []);
+    setRemovedPhotoIds([]);
+
+    if (coverInputRef.current) {
+      coverInputRef.current.value = "";
+    }
+
+    if (photosInputRef.current) {
+      photosInputRef.current.value = "";
+    }
+
+    setIsFormModalOpen(true);
+  };
+
+  const closeFormModal = () => {
+    setIsFormModalOpen(false);
+    setIsSubmitting(false);
+    setFormError("");
+  };
+
   const updateField = (field: keyof EventoFormState, value: string) => {
     setFormState((prev) => ({
       ...prev,
       [field]: value,
     }));
+  };
+
+  const toggleRemovePhoto = (fotoId: string) => {
+    setRemovedPhotoIds((prev) =>
+      prev.includes(fotoId) ? prev.filter((item) => item !== fotoId) : [...prev, fotoId],
+    );
+  };
+
+  const deleteEventImage = async (eventoId: string, fotoId: string, authHeader: string): Promise<void> => {
+    const response = await fetch(
+      `/api/eventos/${encodeURIComponent(eventoId)}/fotos/${encodeURIComponent(fotoId)}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: authHeader,
+        },
+      },
+    );
+
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as { message?: string } | null;
+      throw new Error(payload?.message ?? "Nao foi possivel excluir uma das imagens do evento.");
+    }
   };
 
   const submitEvento = async (event: FormEvent<HTMLFormElement>) => {
@@ -319,17 +430,16 @@ export default function EventsDynamicContent() {
       return;
     }
 
-    const token = window.localStorage.getItem(TOKEN_STORAGE_KEY)?.trim() ?? "";
-    const tokenType = window.localStorage.getItem(TOKEN_TYPE_STORAGE_KEY)?.trim() || "Bearer";
+    const authHeader = readAuthHeader();
 
-    if (!token) {
-      setFormError("Faca login como ADM para cadastrar evento.");
+    if (!authHeader) {
+      setFormError("Faca login como ADM para gerenciar eventos.");
       return;
     }
 
     const capaArquivo = coverInputRef.current?.files?.[0] ?? null;
 
-    if (!capaArquivo) {
+    if (formMode === "create" && !capaArquivo) {
       setFormError("Selecione a foto de capa do evento.");
       return;
     }
@@ -370,7 +480,10 @@ export default function EventsDynamicContent() {
       payload.append("descricao_resumo", formState.descricaoResumo.trim());
       payload.append("inicio_em", formState.inicioEm);
       payload.append("status", "PUBLICADO");
-      payload.append("capa", capaArquivo);
+
+      if (capaArquivo) {
+        payload.append("capa", capaArquivo);
+      }
 
       if (formState.descricaoDetalhada.trim()) {
         payload.append("descricao_detalhada", formState.descricaoDetalhada.trim());
@@ -388,18 +501,21 @@ export default function EventsDynamicContent() {
         payload.append("fim_em", formState.fimEm);
       }
 
-      const fotos = photosInputRef.current?.files;
+      const novasFotos = photosInputRef.current?.files;
 
-      if (fotos && fotos.length > 0) {
-        for (const file of Array.from(fotos)) {
+      if (novasFotos && novasFotos.length > 0) {
+        for (const file of Array.from(novasFotos)) {
           payload.append("fotos", file);
         }
       }
 
-      const response = await fetch("/api/eventos", {
-        method: "POST",
+      const endpoint = formMode === "create" ? "/api/eventos" : `/api/eventos/${encodeURIComponent(editingEventoId ?? "")}`;
+      const method = formMode === "create" ? "POST" : "PATCH";
+
+      const response = await fetch(endpoint, {
+        method,
         headers: {
-          Authorization: `${tokenType} ${token}`,
+          Authorization: authHeader,
         },
         body: payload,
       });
@@ -411,22 +527,79 @@ export default function EventsDynamicContent() {
         return;
       }
 
-      setFormState(EMPTY_FORM);
-
-      if (coverInputRef.current) {
-        coverInputRef.current.value = "";
+      if (formMode === "edit" && editingEventoId && removedPhotoIds.length > 0) {
+        for (const fotoId of removedPhotoIds) {
+          await deleteEventImage(editingEventoId, fotoId, authHeader);
+        }
       }
 
-      if (photosInputRef.current) {
-        photosInputRef.current.value = "";
-      }
+      setFormSuccess(formMode === "create" ? "Evento cadastrado com sucesso." : "Evento atualizado com sucesso.");
+      closeFormModal();
+      resetFormState();
 
-      setFormSuccess("Evento cadastrado com sucesso.");
       await loadEventos();
-    } catch {
-      setFormError("Erro inesperado ao cadastrar evento.");
+
+      if (formMode === "edit" && editingEventoId) {
+        await openAlbum(editingEventoId);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erro inesperado ao salvar evento.";
+      setFormError(message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteEvento = async () => {
+    if (!albumEvento || isDeletingEvent) {
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      "Deseja excluir este evento? Todas as imagens do album tambem serao removidas.",
+    );
+
+    if (!confirmDelete) {
+      return;
+    }
+
+    const authHeader = readAuthHeader();
+
+    if (!authHeader) {
+      setAlbumError("Faca login como ADM para excluir eventos.");
+      return;
+    }
+
+    setIsDeletingEvent(true);
+    setAlbumError("");
+    setFormSuccess("");
+
+    try {
+      for (const foto of albumEvento.fotos) {
+        await deleteEventImage(albumEvento.id, foto.id, authHeader);
+      }
+
+      const deleteResponse = await fetch(`/api/eventos/${encodeURIComponent(albumEvento.id)}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: authHeader,
+        },
+      });
+
+      const payload = (await deleteResponse.json().catch(() => null)) as { message?: string } | null;
+
+      if (!deleteResponse.ok) {
+        throw new Error(payload?.message ?? "Nao foi possivel excluir o evento.");
+      }
+
+      closeAlbum();
+      setFormSuccess("Evento excluido com sucesso, incluindo as imagens.");
+      await loadEventos();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erro inesperado ao excluir evento.";
+      setAlbumError(message);
+    } finally {
+      setIsDeletingEvent(false);
     }
   };
 
@@ -438,99 +611,15 @@ export default function EventsDynamicContent() {
         <section className="event-admin-panel reveal reveal-1">
           <div className="event-admin-header">
             <p>Area ADM</p>
-            <h2>Cadastrar evento com capa e album</h2>
+            <h2>Gerenciar eventos</h2>
           </div>
 
-          <form className="event-admin-form" onSubmit={submitEvento} noValidate>
-            <label className="event-admin-field">
-              Titulo
-              <input
-                type="text"
-                value={formState.titulo}
-                onChange={(e) => updateField("titulo", e.target.value)}
-                placeholder="Ex.: Aquarela Botanica em Camadas"
-                disabled={isSubmitting}
-              />
-            </label>
-
-            <label className="event-admin-field event-admin-field-wide">
-              Resumo
-              <textarea
-                value={formState.descricaoResumo}
-                onChange={(e) => updateField("descricaoResumo", e.target.value)}
-                placeholder="Descricao curta para o card"
-                disabled={isSubmitting}
-              />
-            </label>
-
-            <label className="event-admin-field event-admin-field-wide">
-              Descricao detalhada (album)
-              <textarea
-                value={formState.descricaoDetalhada}
-                onChange={(e) => updateField("descricaoDetalhada", e.target.value)}
-                placeholder="Texto maior para abrir ao clicar no evento"
-                disabled={isSubmitting}
-              />
-            </label>
-
-            <label className="event-admin-field">
-              Local (nome)
-              <input
-                type="text"
-                value={formState.localNome}
-                onChange={(e) => updateField("localNome", e.target.value)}
-                placeholder="Ex.: Atelie da Senhora Hobbie"
-                disabled={isSubmitting}
-              />
-            </label>
-
-            <label className="event-admin-field">
-              Endereco (opcional)
-              <input
-                type="text"
-                value={formState.localEndereco}
-                onChange={(e) => updateField("localEndereco", e.target.value)}
-                placeholder="Rua, bairro, cidade"
-                disabled={isSubmitting}
-              />
-            </label>
-
-            <label className="event-admin-field">
-              Inicio
-              <input
-                type="datetime-local"
-                value={formState.inicioEm}
-                onChange={(e) => updateField("inicioEm", e.target.value)}
-                disabled={isSubmitting}
-              />
-            </label>
-
-            <label className="event-admin-field">
-              Fim (opcional)
-              <input
-                type="datetime-local"
-                value={formState.fimEm}
-                onChange={(e) => updateField("fimEm", e.target.value)}
-                disabled={isSubmitting}
-              />
-            </label>
-
-            <label className="event-admin-field">
-              Foto de capa
-              <input ref={coverInputRef} type="file" accept="image/*" disabled={isSubmitting} />
-            </label>
-
-            <label className="event-admin-field event-admin-field-wide">
-              Fotos do album (multiplas)
-              <input ref={photosInputRef} type="file" accept="image/*" multiple disabled={isSubmitting} />
-            </label>
-
-            <button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Salvando..." : "Cadastrar evento"}
+          <div className="event-admin-actions">
+            <button type="button" className="event-admin-open-btn" onClick={openCreateModal}>
+              Cadastrar evento
             </button>
-          </form>
+          </div>
 
-          {formError ? <p className="event-admin-feedback event-admin-feedback-error">{formError}</p> : null}
           {formSuccess ? <p className="event-admin-feedback event-admin-feedback-success">{formSuccess}</p> : null}
         </section>
       ) : null}
@@ -606,6 +695,143 @@ export default function EventsDynamicContent() {
         ) : null}
       </section>
 
+      {isFormModalOpen ? (
+        <div className="event-form-backdrop" role="presentation" onClick={closeFormModal}>
+          <section className="event-form-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="event-album-close" onClick={closeFormModal}>
+              Fechar
+            </button>
+
+            <div className="event-admin-header">
+              <p>Area ADM</p>
+              <h2>{formMode === "create" ? "Cadastrar evento" : "Editar evento"}</h2>
+            </div>
+
+            <form className="event-admin-form" onSubmit={submitEvento} noValidate>
+              <label className="event-admin-field">
+                Titulo
+                <input
+                  type="text"
+                  value={formState.titulo}
+                  onChange={(e) => updateField("titulo", e.target.value)}
+                  placeholder="Ex.: Aquarela Botanica em Camadas"
+                  disabled={isSubmitting}
+                />
+              </label>
+
+              <label className="event-admin-field event-admin-field-wide">
+                Resumo
+                <textarea
+                  value={formState.descricaoResumo}
+                  onChange={(e) => updateField("descricaoResumo", e.target.value)}
+                  placeholder="Descricao curta para o card"
+                  disabled={isSubmitting}
+                />
+              </label>
+
+              <label className="event-admin-field event-admin-field-wide">
+                Descricao detalhada (album)
+                <textarea
+                  value={formState.descricaoDetalhada}
+                  onChange={(e) => updateField("descricaoDetalhada", e.target.value)}
+                  placeholder="Texto maior para abrir ao clicar no evento"
+                  disabled={isSubmitting}
+                />
+              </label>
+
+              <label className="event-admin-field">
+                Local (nome)
+                <input
+                  type="text"
+                  value={formState.localNome}
+                  onChange={(e) => updateField("localNome", e.target.value)}
+                  placeholder="Ex.: Atelie da Senhora Hobbie"
+                  disabled={isSubmitting}
+                />
+              </label>
+
+              <label className="event-admin-field">
+                Endereco (opcional)
+                <input
+                  type="text"
+                  value={formState.localEndereco}
+                  onChange={(e) => updateField("localEndereco", e.target.value)}
+                  placeholder="Rua, bairro, cidade"
+                  disabled={isSubmitting}
+                />
+              </label>
+
+              <label className="event-admin-field">
+                Inicio
+                <input
+                  type="datetime-local"
+                  value={formState.inicioEm}
+                  onChange={(e) => updateField("inicioEm", e.target.value)}
+                  disabled={isSubmitting}
+                />
+              </label>
+
+              <label className="event-admin-field">
+                Fim (opcional)
+                <input
+                  type="datetime-local"
+                  value={formState.fimEm}
+                  onChange={(e) => updateField("fimEm", e.target.value)}
+                  disabled={isSubmitting}
+                />
+              </label>
+
+              <label className="event-admin-field">
+                Foto de capa {formMode === "create" ? "" : "(opcional)"}
+                <input ref={coverInputRef} type="file" accept="image/*" disabled={isSubmitting} />
+              </label>
+
+              <label className="event-admin-field event-admin-field-wide">
+                Fotos do album (multiplas)
+                <input ref={photosInputRef} type="file" accept="image/*" multiple disabled={isSubmitting} />
+              </label>
+
+              {formMode === "edit" ? (
+                <div className="event-admin-field event-admin-field-full event-existing-photos">
+                  <strong>Fotos atuais do album</strong>
+                  {existingPhotos.length === 0 ? (
+                    <p>Este evento nao possui fotos adicionais.</p>
+                  ) : (
+                    <div className="event-existing-photos-grid">
+                      {existingPhotos.map((foto) => {
+                        const marked = removedPhotoIds.includes(foto.id);
+                        return (
+                          <article
+                            key={foto.id}
+                            className={`event-existing-photo-item ${marked ? "is-marked" : ""}`}
+                          >
+                            <img src={foto.url} alt={foto.legenda || "Foto do evento"} className="event-existing-photo-image" />
+                            <button
+                              type="button"
+                              className="event-existing-photo-btn"
+                              onClick={() => toggleRemovePhoto(foto.id)}
+                              disabled={isSubmitting}
+                            >
+                              {marked ? "Desfazer" : "Remover"}
+                            </button>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ) : null}
+
+              <button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Salvando..." : formMode === "create" ? "Cadastrar evento" : "Salvar alteracoes"}
+              </button>
+            </form>
+
+            {formError ? <p className="event-admin-feedback event-admin-feedback-error">{formError}</p> : null}
+          </section>
+        </div>
+      ) : null}
+
       {(albumEvento || albumError || isAlbumLoading) && (
         <div className="event-album-backdrop" onClick={closeAlbum} role="presentation">
           <section className="event-album-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
@@ -623,6 +849,22 @@ export default function EventsDynamicContent() {
                   <h3>{albumEvento.titulo}</h3>
                   <span>{albumEvento.descricaoDetalhada || albumEvento.descricaoResumo}</span>
                 </header>
+
+                {canCreateEventos ? (
+                  <div className="event-album-admin-actions">
+                    <button type="button" className="event-album-admin-btn" onClick={() => openEditModal(albumEvento)}>
+                      Editar evento
+                    </button>
+                    <button
+                      type="button"
+                      className="event-album-admin-btn event-album-admin-btn-danger"
+                      onClick={() => void handleDeleteEvento()}
+                      disabled={isDeletingEvent}
+                    >
+                      {isDeletingEvent ? "Excluindo..." : "Excluir evento"}
+                    </button>
+                  </div>
+                ) : null}
 
                 <div className="event-album-grid">
                   {albumEvento.capaUrl ? (
