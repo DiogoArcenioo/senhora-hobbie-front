@@ -1156,8 +1156,9 @@ a {
 
 .event-admin-form {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 0.7rem;
+  align-items: start;
 }
 
 .event-admin-form label {
@@ -1170,21 +1171,58 @@ a {
 }
 
 .event-admin-field {
-  grid-column: span 1;
+  grid-column: span 3;
 }
 
 .event-admin-field-wide {
-  grid-column: span 2;
+  grid-column: span 6;
 }
 
 .event-admin-field-full {
   grid-column: 1 / -1;
 }
 
+.event-field-title {
+  grid-column: span 3;
+}
+
+.event-field-resumo {
+  grid-column: span 6;
+}
+
+.event-field-detalhada {
+  grid-column: span 6;
+}
+
+.event-field-local {
+  grid-column: span 3;
+}
+
+.event-field-endereco {
+  grid-column: span 3;
+}
+
+.event-field-inicio {
+  grid-column: span 3;
+}
+
+.event-field-fim {
+  grid-column: span 3;
+}
+
+.event-field-capa {
+  grid-column: span 3;
+}
+
+.event-field-fotos {
+  grid-column: span 6;
+}
+
 .event-admin-form input,
 .event-admin-form textarea {
   width: 100%;
   min-width: 0;
+  min-height: 3rem;
   border: 1px solid rgba(208, 100, 102, 0.34);
   border-radius: 0.7rem;
   background: #fff;
@@ -1202,13 +1240,16 @@ a {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.2;
 }
 
 .event-admin-form input[type="file"]::file-selector-button {
   border: 0;
   border-radius: 0.55rem;
-  padding: 0.36rem 0.62rem;
-  margin-right: 0.55rem;
+  padding: 0.34rem 0.56rem;
+  margin-right: 0.45rem;
   color: #fff;
   background: var(--color-brand-red);
   cursor: pointer;
@@ -1632,6 +1673,24 @@ a {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .event-admin-field,
+  .event-field-title,
+  .event-field-local,
+  .event-field-endereco,
+  .event-field-inicio,
+  .event-field-fim,
+  .event-field-capa {
+    grid-column: span 1;
+  }
+
+  .event-admin-field-wide,
+  .event-field-resumo,
+  .event-field-detalhada,
+  .event-field-fotos,
+  .event-admin-field-full {
+    grid-column: span 2;
+  }
+
   .next-event-panel {
     padding: 0.75rem;
   }
@@ -1769,7 +1828,18 @@ a {
     grid-template-columns: 1fr;
   }
 
-  .event-admin-field-wide {
+  .event-admin-field,
+  .event-admin-field-wide,
+  .event-admin-field-full,
+  .event-field-title,
+  .event-field-resumo,
+  .event-field-detalhada,
+  .event-field-local,
+  .event-field-endereco,
+  .event-field-inicio,
+  .event-field-fim,
+  .event-field-capa,
+  .event-field-fotos {
     grid-column: span 1;
   }
 }

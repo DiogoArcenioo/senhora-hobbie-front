@@ -708,7 +708,7 @@ export default function EventsDynamicContent() {
             </div>
 
             <form className="event-admin-form" onSubmit={submitEvento} noValidate>
-              <label className="event-admin-field">
+              <label className="event-admin-field event-field-title">
                 Titulo
                 <input
                   type="text"
@@ -719,7 +719,7 @@ export default function EventsDynamicContent() {
                 />
               </label>
 
-              <label className="event-admin-field event-admin-field-wide">
+              <label className="event-admin-field event-admin-field-wide event-field-resumo">
                 Resumo
                 <textarea
                   value={formState.descricaoResumo}
@@ -729,7 +729,7 @@ export default function EventsDynamicContent() {
                 />
               </label>
 
-              <label className="event-admin-field event-admin-field-wide">
+              <label className="event-admin-field event-admin-field-wide event-field-detalhada">
                 Descricao detalhada (album)
                 <textarea
                   value={formState.descricaoDetalhada}
@@ -739,7 +739,7 @@ export default function EventsDynamicContent() {
                 />
               </label>
 
-              <label className="event-admin-field">
+              <label className="event-admin-field event-field-local">
                 Local (nome)
                 <input
                   type="text"
@@ -750,7 +750,7 @@ export default function EventsDynamicContent() {
                 />
               </label>
 
-              <label className="event-admin-field">
+              <label className="event-admin-field event-field-endereco">
                 Endereco (opcional)
                 <input
                   type="text"
@@ -761,7 +761,7 @@ export default function EventsDynamicContent() {
                 />
               </label>
 
-              <label className="event-admin-field">
+              <label className="event-admin-field event-field-inicio">
                 Inicio
                 <input
                   type="datetime-local"
@@ -771,7 +771,7 @@ export default function EventsDynamicContent() {
                 />
               </label>
 
-              <label className="event-admin-field">
+              <label className="event-admin-field event-field-fim">
                 Fim (opcional)
                 <input
                   type="datetime-local"
@@ -781,12 +781,12 @@ export default function EventsDynamicContent() {
                 />
               </label>
 
-              <label className="event-admin-field">
+              <label className="event-admin-field event-field-capa">
                 Foto de capa {formMode === "create" ? "" : "(opcional)"}
                 <input ref={coverInputRef} type="file" accept="image/*" disabled={isSubmitting} />
               </label>
 
-              <label className="event-admin-field event-admin-field-wide">
+              <label className="event-admin-field event-admin-field-wide event-field-fotos">
                 Fotos do album (multiplas)
                 <input ref={photosInputRef} type="file" accept="image/*" multiple disabled={isSubmitting} />
               </label>
