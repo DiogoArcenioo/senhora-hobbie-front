@@ -27,6 +27,8 @@ const highlights = [
 ];
 
 export default function Home() {
+  const currentYear = new Date().getFullYear();
+
   return (
     <div className="home-page">
       <HomeIntroOverlay />
@@ -69,50 +71,72 @@ export default function Home() {
           <HomeFeaturedImage />
         </section>
 
-        <footer className="home-contact reveal reveal-4" id="contato" aria-label="Contato">
-          <div className="contact-heading">
-            <p className="contact-kicker">Contato</p>
-            <h2>Fale com a gente!</h2>
+        <footer className="site-footer reveal reveal-4" id="contato" aria-label="Contato">
+          <div className="site-footer-content">
+            <div className="site-footer-brand">
+              <Image src="/logo.png" alt="Logo Clube das Jovens Senhoras" width={180} height={90} />
+              <p>Clube criativo para mulheres que querem criar com leveza.</p>
+
+              <a
+                className="site-footer-contact-item"
+                href="https://wa.me/5548991644082"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Conversar no WhatsApp"
+              >
+                <span className="site-footer-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      fill="currentColor"
+                      d="M20.2 3.8A9.9 9.9 0 0 0 4.5 15.7L3 21l5.5-1.4a9.9 9.9 0 0 0 14-8.9c0-2.6-1-5-2.3-6.9Zm-8.3 15a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3.3.9.9-3.2-.2-.3A8.3 8.3 0 1 1 20.2 10a8.3 8.3 0 0 1-8.3 8.8Zm4.6-6.2c-.3-.1-1.8-.9-2.1-1-.3-.1-.5-.1-.7.1l-.6.8c-.2.2-.3.3-.6.2a6.7 6.7 0 0 1-2-1.2 7.5 7.5 0 0 1-1.4-1.8c-.1-.2 0-.4.1-.5l.5-.6a.8.8 0 0 0 .1-.8l-.9-2.2c-.2-.3-.4-.3-.6-.3h-.6a1.2 1.2 0 0 0-.8.4c-.3.3-1 1-1 2.4 0 1.4 1 2.8 1.2 3 .1.2 2 3.2 5 4.3.7.3 1.3.5 1.8.6.8.3 1.4.2 1.9.2.6 0 1.8-.7 2.1-1.5.3-.8.3-1.4.2-1.5 0-.2-.3-.3-.6-.4Z"
+                    />
+                  </svg>
+                </span>
+                <span>48 9164-4082</span>
+              </a>
+            </div>
+
+            <nav className="site-footer-links" aria-label="Navegacao do rodape">
+              <Link href="/">Inicio</Link>
+              <Link href="/como-funciona">Como funciona</Link>
+              <Link href="/eventos">Eventos</Link>
+              <Link href="/assinatura">Assinatura</Link>
+            </nav>
+
+            <div className="site-footer-social">
+              <p>Redes sociais</p>
+              <a
+                className="site-footer-contact-item"
+                href="https://www.instagram.com/senhora-hobbie"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Abrir perfil do Instagram"
+              >
+                <span className="site-footer-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <rect
+                      x="3.1"
+                      y="3.1"
+                      width="17.8"
+                      height="17.8"
+                      rx="5.2"
+                      ry="5.2"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                    />
+                    <circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" strokeWidth="1.8" />
+                    <circle cx="17.3" cy="6.8" r="1.3" fill="currentColor" />
+                  </svg>
+                </span>
+                <span>@senhora-hobbie</span>
+              </a>
+            </div>
           </div>
 
-          <div className="contact-links">
-            <a
-              className="contact-link"
-              href="https://wa.me/5548991644082"
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Conversar no WhatsApp"
-            >
-              <span className="contact-link-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M20.2 3.8A9.9 9.9 0 0 0 4.5 15.7L3 21l5.5-1.4a9.9 9.9 0 0 0 14-8.9c0-2.6-1-5-2.3-6.9Zm-8.3 15a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3.3.9.9-3.2-.2-.3A8.3 8.3 0 1 1 20.2 10a8.3 8.3 0 0 1-8.3 8.8Zm4.6-6.2c-.3-.1-1.8-.9-2.1-1-.3-.1-.5-.1-.7.1l-.6.8c-.2.2-.3.3-.6.2a6.7 6.7 0 0 1-2-1.2 7.5 7.5 0 0 1-1.4-1.8c-.1-.2 0-.4.1-.5l.5-.6a.8.8 0 0 0 .1-.8l-.9-2.2c-.2-.3-.4-.3-.6-.3h-.6a1.2 1.2 0 0 0-.8.4c-.3.3-1 1-1 2.4 0 1.4 1 2.8 1.2 3 .1.2 2 3.2 5 4.3.7.3 1.3.5 1.8.6.8.3 1.4.2 1.9.2.6 0 1.8-.7 2.1-1.5.3-.8.3-1.4.2-1.5 0-.2-.3-.3-.6-.4Z" />
-                </svg>
-              </span>
-              <span className="contact-link-copy">
-                <strong>WhatsApp</strong>
-                <small>48 9164-4082</small>
-              </span>
-            </a>
-
-            <a
-              className="contact-link"
-              href="https://www.instagram.com/senhora-hobbie"
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Abrir perfil do Instagram"
-            >
-              <span className="contact-link-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="3.1" y="3.1" width="17.8" height="17.8" rx="5.2" ry="5.2" />
-                  <circle cx="12" cy="12" r="4.2" />
-                  <circle cx="17.3" cy="6.8" r="1.3" />
-                </svg>
-              </span>
-              <span className="contact-link-copy">
-                <strong>Instagram</strong>
-                <small>@senhora-hobbie</small>
-              </span>
-            </a>
+          <div className="site-footer-copy">
+            Copyright {currentYear} © Clube das Jovens Senhoras - Desenvolvido por Norte Sistemas
+            de Gestao Inteligente
           </div>
         </footer>
       </main>
