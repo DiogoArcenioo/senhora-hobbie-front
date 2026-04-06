@@ -1,5 +1,3 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { NextResponse } from "next/server";
 import {
   buildBackendUrl,
@@ -13,141 +11,299 @@ import {
   sanitizeHeroSlides,
 } from "@/app/lib/hero-slides";
 
-export const runtime = "nodejs";
-
-const HERO_SLIDES_FILE_PATH = path.join(process.cwd(), "app", "data", "hero-slides.json");
-
-type HeroSlidesBody = {
+type HeroSlidesPayload = {
   slides?: unknown;
-};
-
-type HeroSlidesFileShape = {
-  slides?: unknown;
-};
-
-type JwtPayload = {
-  sub?: string;
-};
-
-type UsuarioPayload = {
-  tipo?: string;
+  imagens?: unknown;
+  itens?: unknown;
+  items?: unknown;
+  fotos?: unknown;
   message?: string | string[];
 };
 
-function decodeJwtPayload(token: string): JwtPayload | null {
-  const parts = token.split(".");
+type HeroSlideLike = {
+  id?: string | number | null;
+  imageUrl?: string | null;
+  url?: string | null;
+  urlPublica?: string | null;
+  url_publica?: string | null;
+  alt?: string | null;
+  textoAlternativo?: string | null;
+  texto_alternativo?: string | null;
+  legenda?: string | null;
+  ordem?: number | string | null;
+  posicao?: number | string | null;
+  indice?: number | string | null;
+};
 
-  if (parts.length < 2) {
+type BackendAttempt = {
+  payload: unknown;
+  response: Response;
+};
+
+const HERO_SLIDER_READ_PATHS = [
+  "/imagens/site/home-slider",
+  "/imagens/site/hero-slider",
+  "/imagens/site/home-slides",
+];
+
+const HERO_SLIDER_WRITE_PATHS = [
+  "/imagens/site/home-slider",
+  "/imagens/site/hero-slider",
+  "/imagens/site/home-slides",
+];
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function toNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+}
+
+function toStringValue(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeSlideItem(item: unknown, fallbackIndex: number): HeroSlide | null {
+  if (!isRecord(item)) {
     return null;
   }
 
-  try {
-    const normalizedPayload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-    const paddedPayload = normalizedPayload.padEnd(Math.ceil(normalizedPayload.length / 4) * 4, "=");
-    const decodedPayload = Buffer.from(paddedPayload, "base64").toString("utf8");
-    const payload = JSON.parse(decodedPayload) as JwtPayload;
-
-    if (!payload || typeof payload !== "object") {
-      return null;
-    }
-
-    return payload;
-  } catch {
-    return null;
-  }
-}
-
-async function validateAdminAccess(request: Request): Promise<NextResponse | null> {
-  const authorizationHeader = request.headers.get("authorization") ?? "";
-
-  if (!authorizationHeader.trim()) {
-    return NextResponse.json({ message: "Token nao informado." }, { status: 401 });
-  }
-
-  const [tokenType, token] = authorizationHeader.split(" ");
-
-  if (!tokenType || !token) {
-    return NextResponse.json({ message: "Token invalido." }, { status: 401 });
-  }
-
-  const jwtPayload = decodeJwtPayload(token);
-
-  if (!jwtPayload?.sub) {
-    return NextResponse.json({ message: "Token invalido." }, { status: 401 });
-  }
-
-  try {
-    const backendResponse = await fetch(
-      buildBackendUrl(`/usuarios/${encodeURIComponent(jwtPayload.sub)}`),
-      {
-        method: "GET",
-        headers: {
-          Authorization: `${tokenType} ${token}`,
-        },
-        cache: "no-store",
-      },
-    );
-
-    const backendPayload = (await parseBackendPayload(backendResponse)) as UsuarioPayload | null;
-
-    if (!backendResponse.ok) {
-      const message =
-        getBackendErrorMessage(backendPayload) ??
-        "Nao foi possivel validar permissao para editar o slider.";
-      return NextResponse.json({ message }, { status: backendResponse.status });
-    }
-
-    const tipo = typeof backendPayload?.tipo === "string" ? backendPayload.tipo.trim().toUpperCase() : "";
-
-    if (tipo !== "ADM") {
-      return NextResponse.json(
-        { message: "Apenas usuarios ADM podem editar as fotos do slider." },
-        { status: 403 },
-      );
-    }
-
-    return null;
-  } catch {
-    return NextResponse.json(
-      { message: "Erro ao validar permissao de administrador." },
-      { status: 500 },
-    );
-  }
-}
-
-async function loadStoredHeroSlides(): Promise<HeroSlide[]> {
-  try {
-    const rawFile = await readFile(HERO_SLIDES_FILE_PATH, "utf8");
-    const parsedFile = JSON.parse(rawFile) as HeroSlidesFileShape;
-    const slides = sanitizeHeroSlides(parsedFile.slides);
-
-    if (slides.length > 0) {
-      return slides;
-    }
-
-    return DEFAULT_HERO_SLIDES;
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
-      return DEFAULT_HERO_SLIDES;
-    }
-
-    return DEFAULT_HERO_SLIDES;
-  }
-}
-
-async function persistHeroSlides(slides: HeroSlide[]): Promise<void> {
-  await mkdir(path.dirname(HERO_SLIDES_FILE_PATH), { recursive: true });
-  await writeFile(
-    HERO_SLIDES_FILE_PATH,
-    `${JSON.stringify({ slides }, null, 2)}\n`,
-    "utf8",
+  const data = item as HeroSlideLike;
+  const imageUrl = toStringValue(
+    data.imageUrl ?? data.urlPublica ?? data.url_publica ?? data.url,
   );
+
+  if (!imageUrl) {
+    return null;
+  }
+
+  const idCandidate = data.id;
+  const id =
+    typeof idCandidate === "string" || typeof idCandidate === "number"
+      ? String(idCandidate)
+      : `slide-${fallbackIndex}`;
+
+  const alt = toStringValue(
+    data.alt ?? data.textoAlternativo ?? data.texto_alternativo ?? data.legenda,
+  );
+
+  return {
+    id,
+    imageUrl,
+    alt: alt || `Foto do slide ${fallbackIndex}`,
+  };
+}
+
+function extractSlidesFromPayload(payload: unknown): HeroSlide[] {
+  if (Array.isArray(payload)) {
+    return sanitizeHeroSlides(
+      payload.map((item, index) => normalizeSlideItem(item, index + 1)).filter(Boolean),
+    );
+  }
+
+  if (!isRecord(payload)) {
+    return [];
+  }
+
+  const objectPayload = payload as HeroSlidesPayload;
+  const candidates = [
+    objectPayload.slides,
+    objectPayload.imagens,
+    objectPayload.itens,
+    objectPayload.items,
+    objectPayload.fotos,
+  ];
+
+  for (const candidate of candidates) {
+    if (!Array.isArray(candidate)) {
+      continue;
+    }
+
+    const mapped = candidate
+      .map((item, index) => {
+        const normalized = normalizeSlideItem(item, index + 1);
+
+        if (!normalized) {
+          return null;
+        }
+
+        const order = isRecord(item)
+          ? toNumber(
+              (item as HeroSlideLike).ordem ??
+                (item as HeroSlideLike).posicao ??
+                (item as HeroSlideLike).indice,
+            )
+          : null;
+
+        return {
+          normalized,
+          order,
+          fallbackIndex: index,
+        };
+      })
+      .filter(
+        (
+          item,
+        ): item is { normalized: HeroSlide; order: number | null; fallbackIndex: number } =>
+          item !== null,
+      );
+
+    const ordered = mapped
+      .sort((a, b) => {
+        if (a.order === null && b.order === null) {
+          return a.fallbackIndex - b.fallbackIndex;
+        }
+
+        if (a.order === null) {
+          return 1;
+        }
+
+        if (b.order === null) {
+          return -1;
+        }
+
+        return a.order - b.order;
+      })
+      .map((item) => item.normalized);
+
+    const sanitized = sanitizeHeroSlides(ordered);
+
+    if (sanitized.length > 0) {
+      return sanitized;
+    }
+  }
+
+  return [];
+}
+
+function cloneFormData(source: FormData): FormData {
+  const cloned = new FormData();
+
+  for (const [key, value] of source.entries()) {
+    cloned.append(key, value);
+  }
+
+  return cloned;
+}
+
+function createLegacyFormDataFromJson(rawBody: unknown): FormData {
+  const payload = new FormData();
+
+  if (!isRecord(rawBody)) {
+    return payload;
+  }
+
+  const slides = (rawBody as { slides?: unknown }).slides;
+
+  if (slides !== undefined) {
+    payload.append("slides", JSON.stringify(slides));
+  }
+
+  return payload;
+}
+
+async function fetchSlidesFromBackend(): Promise<BackendAttempt | null> {
+  let latestAttempt: BackendAttempt | null = null;
+
+  for (const path of HERO_SLIDER_READ_PATHS) {
+    const response = await fetch(buildBackendUrl(path), {
+      method: "GET",
+      cache: "no-store",
+    });
+
+    const payload = await parseBackendPayload(response);
+    latestAttempt = { payload, response };
+
+    if (response.ok) {
+      return latestAttempt;
+    }
+
+    if (response.status !== 404 && response.status !== 405) {
+      return latestAttempt;
+    }
+  }
+
+  return latestAttempt;
+}
+
+async function sendSlidesToBackend(
+  authorizationHeader: string,
+  formData: FormData,
+): Promise<BackendAttempt | null> {
+  let latestAttempt: BackendAttempt | null = null;
+
+  for (const path of HERO_SLIDER_WRITE_PATHS) {
+    for (const method of ["PUT", "POST", "PATCH"]) {
+      const response = await fetch(buildBackendUrl(path), {
+        method,
+        headers: {
+          Authorization: authorizationHeader,
+        },
+        body: cloneFormData(formData),
+        cache: "no-store",
+      });
+
+      const payload = await parseBackendPayload(response);
+      latestAttempt = { payload, response };
+
+      if (response.ok) {
+        return latestAttempt;
+      }
+
+      if (response.status !== 404 && response.status !== 405) {
+        return latestAttempt;
+      }
+    }
+  }
+
+  return latestAttempt;
+}
+
+async function parseRequestFormData(request: Request): Promise<FormData> {
+  const contentType = request.headers.get("content-type") ?? "";
+
+  if (contentType.includes("application/json")) {
+    const jsonBody = (await request.json().catch(() => null)) as unknown;
+    return createLegacyFormDataFromJson(jsonBody);
+  }
+
+  return request.formData();
 }
 
 export async function GET() {
   try {
-    const slides = await loadStoredHeroSlides();
-    return NextResponse.json({ slides }, { status: 200 });
+    const backendAttempt = await fetchSlidesFromBackend();
+
+    if (!backendAttempt) {
+      return NextResponse.json({ slides: DEFAULT_HERO_SLIDES }, { status: 200 });
+    }
+
+    if (!backendAttempt.response.ok) {
+      if (backendAttempt.response.status === 404 || backendAttempt.response.status === 405) {
+        return NextResponse.json({ slides: DEFAULT_HERO_SLIDES }, { status: 200 });
+      }
+
+      const message =
+        getBackendErrorMessage(backendAttempt.payload) ??
+        "Nao foi possivel carregar as fotos do slider.";
+
+      return NextResponse.json({ message }, { status: backendAttempt.response.status });
+    }
+
+    const slides = extractSlidesFromPayload(backendAttempt.payload);
+    const normalizedSlides = slides.length > 0 ? slides : DEFAULT_HERO_SLIDES;
+
+    return NextResponse.json({ slides: normalizedSlides }, { status: 200 });
   } catch {
     return NextResponse.json(
       { message: "Erro inesperado ao carregar slider da home." },
@@ -158,31 +314,85 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
-    const authErrorResponse = await validateAdminAccess(request);
+    const authorizationHeader = (request.headers.get("authorization") ?? "").trim();
 
-    if (authErrorResponse) {
-      return authErrorResponse;
+    if (!authorizationHeader) {
+      return NextResponse.json({ message: "Token nao informado." }, { status: 401 });
     }
 
-    const body = (await request.json()) as HeroSlidesBody;
-    const slides = sanitizeHeroSlides(body.slides);
+    const formData = await parseRequestFormData(request);
+    const rawSlidesConfig = formData.get("slides");
 
-    if (slides.length === 0) {
+    if (typeof rawSlidesConfig !== "string" || !rawSlidesConfig.trim()) {
       return NextResponse.json(
-        { message: "Informe ao menos uma foto valida para o slider." },
+        { message: "Configuracao de slides nao informada." },
         { status: 400 },
       );
     }
 
-    if (slides.length > MAX_HERO_SLIDES) {
+    const parsedSlidesConfig = JSON.parse(rawSlidesConfig) as unknown;
+    const parsedSlidesCount = Array.isArray(parsedSlidesConfig) ? parsedSlidesConfig.length : 0;
+    const sanitizedSlides = sanitizeHeroSlides(parsedSlidesConfig);
+
+    if (parsedSlidesCount > MAX_HERO_SLIDES) {
       return NextResponse.json(
         { message: `O limite maximo de fotos e ${MAX_HERO_SLIDES}.` },
         { status: 400 },
       );
     }
 
-    await persistHeroSlides(slides);
-    return NextResponse.json({ slides }, { status: 200 });
+    if (sanitizedSlides.length > MAX_HERO_SLIDES) {
+      return NextResponse.json(
+        { message: `O limite maximo de fotos e ${MAX_HERO_SLIDES}.` },
+        { status: 400 },
+      );
+    }
+
+    if (sanitizedSlides.length === 0 && !Array.from(formData.getAll("fotos")).some((file) => file instanceof File)) {
+      return NextResponse.json(
+        { message: "Informe ao menos uma foto para o slider." },
+        { status: 400 },
+      );
+    }
+
+    const backendAttempt = await sendSlidesToBackend(authorizationHeader, formData);
+
+    if (!backendAttempt) {
+      return NextResponse.json(
+        { message: "Nao foi possivel salvar as fotos do slider no backend." },
+        { status: 502 },
+      );
+    }
+
+    if (!backendAttempt.response.ok) {
+      if (backendAttempt.response.status === 404 || backendAttempt.response.status === 405) {
+        return NextResponse.json(
+          { message: "Endpoint de slider ainda nao disponivel no backend." },
+          { status: 501 },
+        );
+      }
+
+      const message =
+        getBackendErrorMessage(backendAttempt.payload) ??
+        "Nao foi possivel salvar as fotos do slider.";
+
+      return NextResponse.json({ message }, { status: backendAttempt.response.status });
+    }
+
+    const backendSlides = extractSlidesFromPayload(backendAttempt.payload);
+
+    if (backendSlides.length > 0) {
+      return NextResponse.json({ slides: backendSlides }, { status: 200 });
+    }
+
+    const refreshedAttempt = await fetchSlidesFromBackend();
+    const refreshedSlides = extractSlidesFromPayload(refreshedAttempt?.payload);
+
+    if (refreshedSlides.length > 0) {
+      return NextResponse.json({ slides: refreshedSlides }, { status: 200 });
+    }
+
+    return NextResponse.json({ slides: sanitizedSlides }, { status: 200 });
   } catch {
     return NextResponse.json(
       { message: "Erro inesperado ao salvar slider da home." },

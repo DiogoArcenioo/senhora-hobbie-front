@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties, FormEvent } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AUTH_SESSION_EVENT,
   AUTH_USER_STORAGE_KEY,
@@ -34,23 +34,46 @@ type JwtPayload = {
   tipo?: string;
 };
 
-type EditableSlide = HeroSlide;
+type EditableSlide = {
+  clientId: string;
+  persistedId: string | null;
+  imageUrl: string;
+  alt: string;
+  file: File | null;
+  previewUrl: string;
+};
+
+type PersistPayloadSlide = {
+  id?: string;
+  clientId: string;
+  alt: string;
+  ordem: number;
+  imageUrl?: string;
+};
+
+function createClientId(prefix = "slide"): string {
+  return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+}
 
 function toEditableSlides(slides: HeroSlide[]): EditableSlide[] {
   return slides.map((slide) => ({
-    id: slide.id,
+    clientId: createClientId(slide.id || "slide"),
+    persistedId: slide.id || null,
     imageUrl: slide.imageUrl,
     alt: slide.alt,
+    file: null,
+    previewUrl: "",
   }));
 }
 
-function createDraftSlide(position: number): EditableSlide {
-  const uniqueSuffix = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-
+function createDraftSlide(): EditableSlide {
   return {
-    id: `draft-${position}-${uniqueSuffix}`,
+    clientId: createClientId("draft"),
+    persistedId: null,
     imageUrl: "",
     alt: "",
+    file: null,
+    previewUrl: "",
   };
 }
 
@@ -110,27 +133,6 @@ function decodeJwtPayload(token: string): JwtPayload | null {
   }
 }
 
-function fileToDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      if (typeof reader.result === "string" && reader.result.trim()) {
-        resolve(reader.result);
-        return;
-      }
-
-      reject(new Error("Nao foi possivel ler a imagem selecionada."));
-    };
-
-    reader.onerror = () => {
-      reject(new Error("Falha ao processar o arquivo da imagem."));
-    };
-
-    reader.readAsDataURL(file);
-  });
-}
-
 function resolveAltFromFileName(fileName: string): string {
   const normalizedName = fileName.replace(/\.[^.]+$/, "").replaceAll(/[_-]+/g, " ").trim();
   return normalizedName.slice(0, 180);
@@ -147,14 +149,22 @@ function getAuthorizationHeader(): string {
   return token ? `${tokenType} ${token}` : "";
 }
 
+function toRenderableSource(slide: EditableSlide): string {
+  return slide.previewUrl || slide.imageUrl;
+}
+
+function revokePreviewUrl(url: string): void {
+  if (url.startsWith("blob:")) {
+    URL.revokeObjectURL(url);
+  }
+}
+
 export default function HeroSliderAdminPanel({
   variant = "page",
   onSaved,
   onClose,
 }: HeroSliderAdminPanelProps) {
-  const [slides, setSlides] = useState<EditableSlide[]>(() =>
-    toEditableSlides(DEFAULT_HERO_SLIDES),
-  );
+  const [slides, setSlides] = useState<EditableSlide[]>(() => toEditableSlides(DEFAULT_HERO_SLIDES));
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [isAdminFromToken, setIsAdminFromToken] = useState(false);
   const [hasResolvedAuth, setHasResolvedAuth] = useState(false);
@@ -163,6 +173,7 @@ export default function HeroSliderAdminPanel({
   const [uploadingSlideIndex, setUploadingSlideIndex] = useState<number | null>(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const slidesRef = useRef<EditableSlide[]>(slides);
 
   useEffect(() => {
     const syncAuthUser = () => {
@@ -171,8 +182,7 @@ export default function HeroSliderAdminPanel({
       const token = window.localStorage.getItem(TOKEN_STORAGE_KEY) ?? "";
       const jwtPayload = decodeJwtPayload(token);
       const isAdmin =
-        typeof jwtPayload?.tipo === "string" &&
-        jwtPayload.tipo.trim().toUpperCase() === "ADM";
+        typeof jwtPayload?.tipo === "string" && jwtPayload.tipo.trim().toUpperCase() === "ADM";
 
       setIsAdminFromToken(isAdmin);
       setHasResolvedAuth(true);
@@ -201,7 +211,13 @@ export default function HeroSliderAdminPanel({
         const parsedSlides = sanitizeHeroSlides(payload?.slides);
 
         if (isMounted && parsedSlides.length > 0) {
-          setSlides(toEditableSlides(parsedSlides));
+          setSlides((previous) => {
+            for (const item of previous) {
+              revokePreviewUrl(item.previewUrl);
+            }
+
+            return toEditableSlides(parsedSlides);
+          });
         }
       } finally {
         if (isMounted) {
@@ -217,6 +233,19 @@ export default function HeroSliderAdminPanel({
     };
   }, []);
 
+  useEffect(() => {
+    slidesRef.current = slides;
+  }, [slides]);
+
+  useEffect(
+    () => () => {
+      for (const slide of slidesRef.current) {
+        revokePreviewUrl(slide.previewUrl);
+      }
+    },
+    [],
+  );
+
   const isAdmin = useMemo(() => isAdminUser(authUser) || isAdminFromToken, [authUser, isAdminFromToken]);
   const canAddMoreSlides = slides.length < MAX_HERO_SLIDES;
   const isUploadingImage = uploadingSlideIndex !== null;
@@ -228,17 +257,13 @@ export default function HeroSliderAdminPanel({
     [slides.length],
   );
 
-  const updateSlideField = (
-    index: number,
-    field: keyof Pick<EditableSlide, "imageUrl" | "alt">,
-    value: string,
-  ) => {
+  const updateSlideAlt = (index: number, value: string) => {
     setSlides((previous) =>
       previous.map((slide, currentIndex) =>
         currentIndex === index
           ? {
               ...slide,
-              [field]: value,
+              alt: value,
             }
           : slide,
       ),
@@ -246,21 +271,31 @@ export default function HeroSliderAdminPanel({
   };
 
   const addSlide = () => {
-    if (!canAddMoreSlides || isSaving) {
+    if (!canAddMoreSlides || isSaving || isUploadingImage) {
       return;
     }
 
-    setSlides((previous) => [...previous, createDraftSlide(previous.length + 1)]);
+    setSlides((previous) => [...previous, createDraftSlide()]);
     setErrorMessage("");
     setSuccessMessage("");
   };
 
   const removeSlide = (index: number) => {
-    if (isSaving || isUploadingImage) {
+    if (isSaving || isUploadingImage || slides.length <= 1) {
       return;
     }
 
-    setSlides((previous) => previous.filter((_, currentIndex) => currentIndex !== index));
+    setSlides((previous) => {
+      const next = [...previous];
+      const [removed] = next.splice(index, 1);
+
+      if (removed) {
+        revokePreviewUrl(removed.previewUrl);
+      }
+
+      return next;
+    });
+
     setErrorMessage("");
     setSuccessMessage("");
   };
@@ -279,6 +314,11 @@ export default function HeroSliderAdminPanel({
     setSlides((previous) => {
       const updated = [...previous];
       const [slide] = updated.splice(index, 1);
+
+      if (!slide) {
+        return previous;
+      }
+
       updated.splice(nextIndex, 0, slide);
       return updated;
     });
@@ -287,16 +327,16 @@ export default function HeroSliderAdminPanel({
     setSuccessMessage("");
   };
 
-  const handleFileUpload = async (index: number, file: File) => {
+  const handleFileUpload = (index: number, file: File) => {
     if (!file.type.startsWith("image/")) {
       setSuccessMessage("");
       setErrorMessage("Selecione um arquivo de imagem valido (jpg, png, webp...).");
       return;
     }
 
-    if (file.size > 5_000_000) {
+    if (file.size > 25_000_000) {
       setSuccessMessage("");
-      setErrorMessage("Cada imagem deve ter no maximo 5 MB.");
+      setErrorMessage("Cada imagem deve ter no maximo 25 MB.");
       return;
     }
 
@@ -304,30 +344,69 @@ export default function HeroSliderAdminPanel({
     setSuccessMessage("");
     setErrorMessage("");
 
-    try {
-      const dataUrl = await fileToDataUrl(file);
-      const altFromName = resolveAltFromFileName(file.name);
+    const nextPreviewUrl = URL.createObjectURL(file);
+    const altFromName = resolveAltFromFileName(file.name);
 
-      setSlides((previous) =>
-        previous.map((slide, currentIndex) =>
-          currentIndex === index
-            ? {
-                ...slide,
-                imageUrl: dataUrl,
-                alt: slide.alt.trim() || altFromName,
-              }
-            : slide,
-        ),
-      );
-    } catch (error) {
-      const message =
-        error instanceof Error && error.message
-          ? error.message
-          : "Nao foi possivel carregar a imagem selecionada.";
-      setErrorMessage(message);
-    } finally {
-      setUploadingSlideIndex(null);
+    setSlides((previous) =>
+      previous.map((slide, currentIndex) => {
+        if (currentIndex !== index) {
+          return slide;
+        }
+
+        revokePreviewUrl(slide.previewUrl);
+
+        return {
+          ...slide,
+          file,
+          previewUrl: nextPreviewUrl,
+          alt: slide.alt.trim() || altFromName,
+        };
+      }),
+    );
+
+    setUploadingSlideIndex(null);
+  };
+
+  const buildPersistPayload = (): {
+    config: PersistPayloadSlide[];
+    files: Array<{ clientId: string; file: File }>;
+  } => {
+    const config: PersistPayloadSlide[] = [];
+    const files: Array<{ clientId: string; file: File }> = [];
+
+    for (const [index, slide] of slides.entries()) {
+      const hasExistingImage = slide.imageUrl.trim().length > 0;
+      const hasNewFile = slide.file instanceof File;
+
+      if (!hasExistingImage && !hasNewFile) {
+        continue;
+      }
+
+      const payloadSlide: PersistPayloadSlide = {
+        clientId: slide.clientId,
+        alt: slide.alt.trim(),
+        ordem: index + 1,
+      };
+
+      if (slide.persistedId) {
+        payloadSlide.id = slide.persistedId;
+      }
+
+      if (hasExistingImage && !hasNewFile) {
+        payloadSlide.imageUrl = slide.imageUrl.trim();
+      }
+
+      config.push(payloadSlide);
+
+      if (hasNewFile) {
+        files.push({
+          clientId: slide.clientId,
+          file: slide.file as File,
+        });
+      }
     }
+
+    return { config, files };
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -337,11 +416,17 @@ export default function HeroSliderAdminPanel({
       return;
     }
 
-    const cleanedSlides = sanitizeHeroSlides(slides);
+    const { config, files } = buildPersistPayload();
 
-    if (cleanedSlides.length === 0) {
+    if (config.length === 0) {
       setSuccessMessage("");
-      setErrorMessage("Informe pelo menos uma URL valida para salvar o slider.");
+      setErrorMessage("Adicione ao menos uma foto para salvar o slider.");
+      return;
+    }
+
+    if (config.length > MAX_HERO_SLIDES) {
+      setSuccessMessage("");
+      setErrorMessage(`O limite maximo de fotos e ${MAX_HERO_SLIDES}.`);
       return;
     }
 
@@ -356,26 +441,44 @@ export default function HeroSliderAdminPanel({
         throw new Error("Faca login como ADM para editar as fotos do slider.");
       }
 
+      const payload = new FormData();
+      payload.append("slides", JSON.stringify(config));
+      payload.append("substituir_todas", "true");
+
+      for (const item of files) {
+        payload.append("fotos", item.file, item.file.name);
+        payload.append("fotos_referencia", item.clientId);
+      }
+
       const response = await fetch("/api/hero-slides", {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json",
           Authorization: authorizationHeader,
         },
-        body: JSON.stringify({ slides: cleanedSlides }),
+        body: payload,
       });
 
-      const payload = (await response.json().catch(() => null)) as HeroSlidesResponse | null;
+      const data = (await response.json().catch(() => null)) as HeroSlidesResponse | null;
 
       if (!response.ok) {
-        throw new Error(resolveApiMessage(payload, "Nao foi possivel salvar o slider."));
+        throw new Error(resolveApiMessage(data, "Nao foi possivel salvar o slider."));
       }
 
-      const savedSlides = sanitizeHeroSlides(payload?.slides);
-      const resolvedSlides = savedSlides.length > 0 ? savedSlides : cleanedSlides;
-      setSlides(toEditableSlides(resolvedSlides));
+      const savedSlides = sanitizeHeroSlides(data?.slides);
+
+      if (savedSlides.length === 0) {
+        throw new Error("Slider salvo, mas sem retorno de fotos validas.");
+      }
+
+      setSlides((previous) => {
+        for (const item of previous) {
+          revokePreviewUrl(item.previewUrl);
+        }
+
+        return toEditableSlides(savedSlides);
+      });
       setSuccessMessage("Slider atualizado com sucesso.");
-      onSaved?.(resolvedSlides);
+      onSaved?.(savedSlides);
     } catch (error) {
       const message =
         error instanceof Error && error.message
@@ -430,24 +533,25 @@ export default function HeroSliderAdminPanel({
       </div>
 
       <p className="admin-slider-description">
-        Defina de 1 a {MAX_HERO_SLIDES} imagens para o destaque inicial. Voce pode usar URL ou
-        enviar arquivo, trocar ordem e remover.
+        Defina de 1 a {MAX_HERO_SLIDES} imagens no destaque. O envio funciona igual ao album de
+        eventos: arquivo enviado para storage no backend e link salvo no banco.
       </p>
       <p className="admin-slider-count">{slideCountLabel}</p>
 
       <form className="admin-slider-form" onSubmit={handleSubmit}>
         <div className="admin-slider-grid">
           {slides.map((slide, index) => {
-            const previewStyle: CSSProperties | undefined = slide.imageUrl.trim()
+            const source = toRenderableSource(slide);
+            const previewStyle: CSSProperties | undefined = source
               ? {
-                  backgroundImage: `url("${slide.imageUrl.replaceAll('"', "%22")}")`,
+                  backgroundImage: `url("${source.replaceAll('"', "%22")}")`,
                 }
               : undefined;
 
             return (
-              <article key={slide.id} className="admin-slide-card">
+              <article key={slide.clientId} className="admin-slide-card">
                 <div className="admin-slide-preview" style={previewStyle}>
-                  {!slide.imageUrl.trim() ? <span>Sem imagem</span> : null}
+                  {!source ? <span>Sem imagem</span> : null}
                 </div>
 
                 <div className="admin-slide-meta">
@@ -471,15 +575,13 @@ export default function HeroSliderAdminPanel({
                 </div>
 
                 <label className="admin-slide-field">
-                  URL da foto
+                  URL armazenada
                   <input
-                    type="url"
-                    placeholder="https://..."
+                    type="text"
                     value={slide.imageUrl}
-                    onChange={(event) =>
-                      updateSlideField(index, "imageUrl", event.target.value)
-                    }
-                    disabled={isSaving}
+                    placeholder="URL gerada automaticamente apos salvar"
+                    disabled
+                    readOnly
                   />
                 </label>
 
@@ -489,13 +591,13 @@ export default function HeroSliderAdminPanel({
                     type="text"
                     placeholder={`Foto do slide ${index + 1}`}
                     value={slide.alt}
-                    onChange={(event) => updateSlideField(index, "alt", event.target.value)}
+                    onChange={(event) => updateSlideAlt(index, event.target.value)}
                     disabled={isSaving}
                   />
                 </label>
 
                 <label className="admin-slide-field">
-                  Enviar arquivo (opcional)
+                  Enviar arquivo
                   <input
                     type="file"
                     accept="image/*"
@@ -503,7 +605,7 @@ export default function HeroSliderAdminPanel({
                       const selectedFile = event.target.files?.[0];
 
                       if (selectedFile) {
-                        void handleFileUpload(index, selectedFile);
+                        handleFileUpload(index, selectedFile);
                       }
 
                       event.currentTarget.value = "";
