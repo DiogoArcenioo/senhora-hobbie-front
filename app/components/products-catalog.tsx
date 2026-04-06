@@ -592,44 +592,55 @@ export default function ProductsCatalog() {
         <div className={styles.statePanel}>Nenhum produto cadastrado ainda.</div>
       ) : (
         <section className={styles.productGrid}>
-          {produtos.map((produto) => (
-            <article
-              key={produto.id}
-              className={`${styles.productCard} ${typeof produto.ativo === "boolean" && !produto.ativo ? styles.inactive : ""}`}
-            >
-              <div className={styles.productCover}>
-                {produto.capaUrl ? (
-                  <img src={produto.capaUrl} alt={`Capa do produto ${produto.nome}`} />
-                ) : (
-                  <span>Sem capa</span>
-                )}
-              </div>
+          {produtos.map((produto) => {
+            const productDetailHref = `/produtos/${encodeURIComponent(produto.id)}`;
+            const productIsAvailable = typeof produto.ativo === "boolean" ? produto.ativo : true;
 
-              <h2>{produto.nome}</h2>
-              <strong>{formatCurrency(produto.preco, produto.moeda)}</strong>
-              <p>{produto.descricao?.trim() ? produto.descricao : "Sem descricao cadastrada para este produto."}</p>
+            return (
+              <article
+                key={produto.id}
+                className={`${styles.productCard} ${typeof produto.ativo === "boolean" && !produto.ativo ? styles.inactive : ""}`}
+              >
+                <Link href={productDetailHref} className={styles.productCardLink}>
+                  <div className={styles.productCover}>
+                    {produto.capaUrl ? (
+                      <img src={produto.capaUrl} alt={`Capa do produto ${produto.nome}`} />
+                    ) : (
+                      <span>Sem capa</span>
+                    )}
+                  </div>
 
-              {typeof produto.ativo === "boolean" ? (
-                <small className={styles.productStatus}>Status: {produto.ativo ? "Ativo" : "Inativo"}</small>
-              ) : null}
+                  <h2>{produto.nome}</h2>
+                  <strong>{formatCurrency(produto.preco, produto.moeda)}</strong>
+                  <p>{produto.descricao?.trim() ? produto.descricao : "Sem descricao cadastrada para este produto."}</p>
+                </Link>
 
-              <div className={styles.productActions}>
-                {(typeof produto.ativo === "boolean" ? produto.ativo : true) ? (
-                  <Link href={`/produtos/checkout?produtoId=${encodeURIComponent(produto.id)}`} className="btn btn-primary">
-                    Comprar
-                  </Link>
-                ) : (
-                  <span className={styles.productInactiveLabel}>Produto indisponivel</span>
-                )}
-
-                {isAdmin ? (
-                  <button type="button" className="btn btn-soft" onClick={() => openEditModal(produto)}>
-                    Editar
-                  </button>
+                {typeof produto.ativo === "boolean" ? (
+                  <small className={styles.productStatus}>Status: {produto.ativo ? "Ativo" : "Inativo"}</small>
                 ) : null}
-              </div>
-            </article>
-          ))}
+
+                <div className={styles.productActions}>
+                  <Link href={productDetailHref} className="btn btn-soft">
+                    Ver produto
+                  </Link>
+
+                  {productIsAvailable ? (
+                    <Link href={`/produtos/checkout?produtoId=${encodeURIComponent(produto.id)}`} className="btn btn-primary">
+                      Comprar
+                    </Link>
+                  ) : (
+                    <span className={styles.productInactiveLabel}>Produto indisponivel</span>
+                  )}
+
+                  {isAdmin ? (
+                    <button type="button" className="btn btn-soft" onClick={() => openEditModal(produto)}>
+                      Editar
+                    </button>
+                  ) : null}
+                </div>
+              </article>
+            );
+          })}
         </section>
       )}
 

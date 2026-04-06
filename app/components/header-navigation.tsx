@@ -134,11 +134,19 @@ export default function HeaderNavigation() {
 
   return (
     <nav className="home-nav" aria-label="Navegacao principal">
-      {links.map((link) => (
-        <Link key={link.href} href={link.href} className={pathname === link.href ? "is-active" : undefined}>
-          {link.label}
-        </Link>
-      ))}
+      {links.map((link) => {
+        const normalizedHref = link.href.split("#")[0];
+        const isRootLink = normalizedHref === "/";
+        const isActive = isRootLink
+          ? pathname === "/" && link.href === "/"
+          : pathname === normalizedHref || pathname.startsWith(`${normalizedHref}/`);
+
+        return (
+          <Link key={link.href} href={link.href} className={isActive ? "is-active" : undefined}>
+            {link.label}
+          </Link>
+        );
+      })}
     </nav>
   );
 }
