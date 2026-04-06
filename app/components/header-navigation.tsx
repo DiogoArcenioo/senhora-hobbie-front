@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AUTH_SESSION_EVENT,
   AUTH_USER_STORAGE_KEY,
@@ -108,6 +108,8 @@ export default function HeaderNavigation() {
   const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
+  const adminMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const syncSession = () => {
@@ -139,23 +141,68 @@ export default function HeaderNavigation() {
 
   const isAdminMenuActive = ADMIN_LINKS.some((link) => isLinkActive(link.href));
 
+  useEffect(() => {
+    if (!isAdminMenuOpen) {
+      return;
+    }
+
+    const handleOutsideClick = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+
+      if (adminMenuRef.current && target && !adminMenuRef.current.contains(target)) {
+        setIsAdminMenuOpen(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsAdminMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("mousedown", handleOutsideClick);
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      window.removeEventListener("mousedown", handleOutsideClick);
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [isAdminMenuOpen]);
+
   return (
     <nav className="home-nav" aria-label="Navegacao principal">
       {links.map((link) => (
-        <Link key={link.href} href={link.href} className={isLinkActive(link.href) ? "is-active" : undefined}>
+        <Link
+          key={link.href}
+          href={link.href}
+          className={isLinkActive(link.href) ? "is-active" : undefined}
+          onClick={() => setIsAdminMenuOpen(false)}
+        >
           {link.label}
         </Link>
       ))}
 
       {isLoggedIn && isAdmin ? (
-        <div className={`home-nav-admin ${isAdminMenuActive ? "is-active" : ""}`}>
-          <Link href="/admin/hero-slider" className="home-nav-admin-trigger">
+        <div ref={adminMenuRef} className={`home-nav-admin ${isAdminMenuActive ? "is-active" : ""} ${isAdminMenuOpen ? "is-open" : ""}`}>
+          <button
+            type="button"
+            className="home-nav-admin-trigger"
+            aria-haspopup="menu"
+            aria-expanded={isAdminMenuOpen}
+            onClick={() => setIsAdminMenuOpen((previous) => !previous)}
+          >
             Admin
-          </Link>
+          </button>
 
           <div className="home-nav-admin-menu" role="menu" aria-label="Acessos administrativos">
             {ADMIN_LINKS.map((link) => (
-              <Link key={link.href} href={link.href} className={isLinkActive(link.href) ? "is-active" : undefined} role="menuitem">
+              <Link
+                key={link.href}
+                href={link.href}
+                className={isLinkActive(link.href) ? "is-active" : undefined}
+                role="menuitem"
+                onClick={() => setIsAdminMenuOpen(false)}
+              >
                 {link.label}
               </Link>
             ))}
