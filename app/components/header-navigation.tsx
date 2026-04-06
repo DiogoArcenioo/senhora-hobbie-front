@@ -31,15 +31,10 @@ const LOGGED_IN_LINKS: NavLink[] = [
   { href: "/#contato", label: "Contato" },
 ];
 
-const LOGGED_IN_ADMIN_LINKS: NavLink[] = [
-  { href: "/", label: "Inicio" },
-  { href: "/eventos", label: "Eventos" },
-  { href: "/produtos", label: "Produtos" },
-  { href: "/assinatura", label: "Assinatura" },
+const ADMIN_LINKS: NavLink[] = [
+  { href: "/admin/hero-slider", label: "Slider Home" },
   { href: "/admin/vendas", label: "Vendas" },
-  { href: "/admin/hero-slider", label: "Admin" },
   { href: "/admin/gestao-assinaturas", label: "Gestao Assinaturas" },
-  { href: "/#contato", label: "Contato" },
 ];
 
 type AuthUser = {
@@ -131,23 +126,42 @@ export default function HeaderNavigation() {
     };
   }, []);
 
-  const links = isLoggedIn ? (isAdmin ? LOGGED_IN_ADMIN_LINKS : LOGGED_IN_LINKS) : LOGGED_OUT_LINKS;
+  const links = isLoggedIn ? LOGGED_IN_LINKS : LOGGED_OUT_LINKS;
+
+  const isLinkActive = (href: string): boolean => {
+    const normalizedHref = href.split("#")[0];
+    const isRootLink = normalizedHref === "/";
+
+    return isRootLink
+      ? pathname === "/" && href === "/"
+      : pathname === normalizedHref || pathname.startsWith(`${normalizedHref}/`);
+  };
+
+  const isAdminMenuActive = ADMIN_LINKS.some((link) => isLinkActive(link.href));
 
   return (
     <nav className="home-nav" aria-label="Navegacao principal">
-      {links.map((link) => {
-        const normalizedHref = link.href.split("#")[0];
-        const isRootLink = normalizedHref === "/";
-        const isActive = isRootLink
-          ? pathname === "/" && link.href === "/"
-          : pathname === normalizedHref || pathname.startsWith(`${normalizedHref}/`);
+      {links.map((link) => (
+        <Link key={link.href} href={link.href} className={isLinkActive(link.href) ? "is-active" : undefined}>
+          {link.label}
+        </Link>
+      ))}
 
-        return (
-          <Link key={link.href} href={link.href} className={isActive ? "is-active" : undefined}>
-            {link.label}
+      {isLoggedIn && isAdmin ? (
+        <div className={`home-nav-admin ${isAdminMenuActive ? "is-active" : ""}`}>
+          <Link href="/admin/hero-slider" className="home-nav-admin-trigger">
+            Admin
           </Link>
-        );
-      })}
+
+          <div className="home-nav-admin-menu" role="menu" aria-label="Acessos administrativos">
+            {ADMIN_LINKS.map((link) => (
+              <Link key={link.href} href={link.href} className={isLinkActive(link.href) ? "is-active" : undefined} role="menuitem">
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </nav>
   );
 }

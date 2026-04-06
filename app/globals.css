@@ -103,13 +103,17 @@ a {
   font-weight: 700;
 }
 
-.home-nav a {
+.home-nav > a,
+.home-nav-admin-trigger {
   position: relative;
+  display: inline-flex;
+  align-items: center;
   padding: 0.45rem 0.78rem;
   transition: color 0.2s ease;
 }
 
-.home-nav a::after {
+.home-nav > a::after,
+.home-nav-admin-trigger::after {
   content: "";
   position: absolute;
   left: 0;
@@ -120,20 +124,78 @@ a {
   transition: right 0.25s ease;
 }
 
-.home-nav a:hover {
+.home-nav > a:hover,
+.home-nav-admin:hover .home-nav-admin-trigger,
+.home-nav-admin:focus-within .home-nav-admin-trigger {
   color: var(--color-brand-red-soft);
 }
 
-.home-nav a:hover::after {
+.home-nav > a:hover::after,
+.home-nav-admin:hover .home-nav-admin-trigger::after,
+.home-nav-admin:focus-within .home-nav-admin-trigger::after {
   right: 0;
 }
 
-.home-nav a.is-active {
+.home-nav > a.is-active,
+.home-nav-admin.is-active .home-nav-admin-trigger {
   color: var(--color-brand-red-soft);
 }
 
-.home-nav a.is-active::after {
+.home-nav > a.is-active::after,
+.home-nav-admin.is-active .home-nav-admin-trigger::after {
   right: 0;
+}
+
+.home-nav-admin {
+  position: relative;
+}
+
+.home-nav-admin-menu {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  z-index: 12;
+  min-width: 210px;
+  border-radius: 0.78rem;
+  border: 1px solid rgba(208, 100, 102, 0.34);
+  background: rgba(255, 251, 250, 0.98);
+  box-shadow: 0 14px 28px rgba(168, 25, 33, 0.16);
+  backdrop-filter: blur(8px);
+  padding: 0.34rem;
+  display: grid;
+  gap: 0.24rem;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-5px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.home-nav-admin:hover .home-nav-admin-menu,
+.home-nav-admin:focus-within .home-nav-admin-menu {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.home-nav-admin-menu a {
+  border-radius: 0.56rem;
+  border: 1px solid transparent;
+  padding: 0.46rem 0.56rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.home-nav-admin-menu a::after {
+  display: none;
+}
+
+.home-nav-admin-menu a:hover,
+.home-nav-admin-menu a.is-active {
+  background: rgba(243, 160, 177, 0.2);
+  border-color: rgba(168, 25, 33, 0.24);
+  color: var(--color-brand-red-soft);
 }
 
 .header-actions {
@@ -2317,7 +2379,8 @@ a {
     letter-spacing: 0.07em;
   }
 
-  .home-nav a {
+  .home-nav > a,
+  .home-nav-admin-trigger {
     padding: 0.32rem 0.24rem;
   }
 
