@@ -3,10 +3,13 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
+  AUTH_SESSION_EVENT,
   AUTH_USER_STORAGE_KEY,
   TOKEN_STORAGE_KEY,
   TOKEN_TYPE_STORAGE_KEY,
+  clearAuthSession,
   emitAuthSessionChanged,
+  getAuthSessionToken,
 } from "@/app/lib/auth-session";
 
 type AuthMode = "login" | "signup";
@@ -156,6 +159,20 @@ function resolveAuthenticatedUser(
   };
 }
 
+function resolveFallbackUserFromToken(token: string): AuthUser {
+  const tokenPayload = decodeJwtPayload(token);
+
+  return {
+    id: typeof tokenPayload?.sub === "string" ? tokenPayload.sub : undefined,
+    nome: "Minha conta",
+    email: typeof tokenPayload?.email === "string" ? tokenPayload.email : "",
+    tipo:
+      typeof tokenPayload?.tipo === "string" && tokenPayload.tipo.trim()
+        ? tokenPayload.tipo.trim().toUpperCase()
+        : undefined,
+  };
+}
+
 async function fetchAuthenticatedUser(token: string, tokenType: string): Promise<AuthUser | null> {
   try {
     const meResponse = await fetch("/api/auth/me", {
@@ -209,16 +226,17 @@ export default function HeaderAuthActions() {
     let cancelled = false;
 
     const hydrateAuthenticatedUser = async () => {
+      const token = getAuthSessionToken();
+
+      if (!token) {
+        setAuthenticatedUser(null);
+        return;
+      }
+
       const userFromStorage = readStoredUser();
 
       if (userFromStorage) {
         setAuthenticatedUser(userFromStorage);
-      }
-
-      const token = localStorage.getItem(TOKEN_STORAGE_KEY);
-
-      if (!token) {
-        return;
       }
 
       const tokenType = localStorage.getItem(TOKEN_TYPE_STORAGE_KEY)?.trim() || "Bearer";
@@ -256,16 +274,7 @@ export default function HeaderAuthActions() {
         return;
       }
 
-      const tokenPayload = decodeJwtPayload(token);
-      const fallbackUser: AuthUser = {
-        id: typeof tokenPayload?.sub === "string" ? tokenPayload.sub : undefined,
-        nome: "Minha conta",
-        email: typeof tokenPayload?.email === "string" ? tokenPayload.email : "",
-        tipo:
-          typeof tokenPayload?.tipo === "string" && tokenPayload.tipo.trim()
-            ? tokenPayload.tipo.trim().toUpperCase()
-            : undefined,
-      };
+      const fallbackUser = resolveFallbackUserFromToken(token);
 
       localStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(fallbackUser));
       setAuthenticatedUser(fallbackUser);
@@ -276,6 +285,37 @@ export default function HeaderAuthActions() {
 
     return () => {
       cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const syncFromSession = () => {
+      const token = getAuthSessionToken();
+
+      if (!token) {
+        setAuthenticatedUser(null);
+        return;
+      }
+
+      const userFromStorage = readStoredUser();
+
+      if (userFromStorage) {
+        setAuthenticatedUser(userFromStorage);
+        return;
+      }
+
+      const fallbackUser = resolveFallbackUserFromToken(token);
+      localStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(fallbackUser));
+      setAuthenticatedUser(fallbackUser);
+    };
+
+    syncFromSession();
+    window.addEventListener(AUTH_SESSION_EVENT, syncFromSession);
+    window.addEventListener("storage", syncFromSession);
+
+    return () => {
+      window.removeEventListener(AUTH_SESSION_EVENT, syncFromSession);
+      window.removeEventListener("storage", syncFromSession);
     };
   }, []);
 
@@ -342,10 +382,7 @@ export default function HeaderAuthActions() {
   };
 
   const logout = () => {
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
-    localStorage.removeItem(TOKEN_TYPE_STORAGE_KEY);
-    localStorage.removeItem(AUTH_USER_STORAGE_KEY);
-    emitAuthSessionChanged();
+    clearAuthSession({ emitEvent: true });
 
     setAuthenticatedUser(null);
     setForm({
