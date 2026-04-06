@@ -19,6 +19,7 @@ const LOGGED_OUT_LINKS: NavLink[] = [
 const LOGGED_IN_LINKS: NavLink[] = [
   { href: "/eventos", label: "Eventos" },
   { href: "/assinatura", label: "Assinatura" },
+  { href: "/admin/hero-slider", label: "Admin" },
 ];
 
 export default function HeaderNavigation() {
