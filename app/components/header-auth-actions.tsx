@@ -18,6 +18,13 @@ type AuthFormState = {
   name: string;
   email: string;
   password: string;
+  cep: string;
+  estado: string;
+  cidade: string;
+  bairro: string;
+  logradouro: string;
+  numero: string;
+  complemento: string;
 };
 
 type AuthUser = {
@@ -215,6 +222,13 @@ export default function HeaderAuthActions() {
     name: "",
     email: "",
     password: "",
+    cep: "",
+    estado: "",
+    cidade: "",
+    bairro: "",
+    logradouro: "",
+    numero: "",
+    complemento: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -389,6 +403,13 @@ export default function HeaderAuthActions() {
       name: "",
       email: "",
       password: "",
+      cep: "",
+      estado: "",
+      cidade: "",
+      bairro: "",
+      logradouro: "",
+      numero: "",
+      complemento: "",
     });
     setErrorMessage("");
     closeModal();
@@ -404,8 +425,24 @@ export default function HeaderAuthActions() {
     const email = form.email.trim();
     const password = form.password;
     const name = form.name.trim();
+    const cep = form.cep.trim();
+    const estado = form.estado.trim();
+    const cidade = form.cidade.trim();
+    const bairro = form.bairro.trim();
+    const logradouro = form.logradouro.trim();
+    const numero = form.numero.trim();
+    const complemento = form.complemento.trim();
 
-    if (!email || !password || (mode === "signup" && !name)) {
+    const signupFieldsMissing =
+      !name ||
+      !cep ||
+      !estado ||
+      !cidade ||
+      !bairro ||
+      !logradouro ||
+      !numero;
+
+    if (!email || !password || (mode === "signup" && signupFieldsMissing)) {
       setErrorMessage("Preencha os campos obrigatorios para continuar.");
       return;
     }
@@ -424,6 +461,15 @@ export default function HeaderAuthActions() {
             nome: name,
             email,
             senha_hash: password,
+            endereco: {
+              cep,
+              estado,
+              cidade,
+              bairro,
+              logradouro,
+              numero,
+              complemento,
+            },
           }),
         });
 
@@ -487,6 +533,13 @@ export default function HeaderAuthActions() {
         name: "",
         email: "",
         password: "",
+        cep: "",
+        estado: "",
+        cidade: "",
+        bairro: "",
+        logradouro: "",
+        numero: "",
+        complemento: "",
       });
 
       closeModal();
@@ -543,19 +596,119 @@ export default function HeaderAuthActions() {
 
         <form className="auth-form" onSubmit={handleSubmit}>
           {mode === "signup" && (
-            <label className="auth-field">
-              Nome completo
-              <input
-                type="text"
-                name="name"
-                placeholder="Seu nome"
-                autoComplete="name"
-                value={form.name}
-                onChange={(event) => onFieldChange("name", event.target.value)}
-                disabled={isSubmitting}
-                required
-              />
-            </label>
+            <>
+              <label className="auth-field">
+                Nome completo
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Seu nome"
+                  autoComplete="name"
+                  value={form.name}
+                  onChange={(event) => onFieldChange("name", event.target.value)}
+                  disabled={isSubmitting}
+                  required
+                />
+              </label>
+
+              <label className="auth-field">
+                CEP
+                <input
+                  type="text"
+                  name="cep"
+                  placeholder="00000-000"
+                  autoComplete="postal-code"
+                  value={form.cep}
+                  onChange={(event) => onFieldChange("cep", event.target.value)}
+                  disabled={isSubmitting}
+                  required
+                />
+              </label>
+
+              <label className="auth-field">
+                Estado (UF)
+                <input
+                  type="text"
+                  name="estado"
+                  placeholder="SP"
+                  autoComplete="address-level1"
+                  maxLength={2}
+                  value={form.estado}
+                  onChange={(event) => onFieldChange("estado", event.target.value)}
+                  disabled={isSubmitting}
+                  required
+                />
+              </label>
+
+              <label className="auth-field">
+                Cidade
+                <input
+                  type="text"
+                  name="cidade"
+                  placeholder="Sua cidade"
+                  autoComplete="address-level2"
+                  value={form.cidade}
+                  onChange={(event) => onFieldChange("cidade", event.target.value)}
+                  disabled={isSubmitting}
+                  required
+                />
+              </label>
+
+              <label className="auth-field">
+                Bairro
+                <input
+                  type="text"
+                  name="bairro"
+                  placeholder="Seu bairro"
+                  autoComplete="address-level3"
+                  value={form.bairro}
+                  onChange={(event) => onFieldChange("bairro", event.target.value)}
+                  disabled={isSubmitting}
+                  required
+                />
+              </label>
+
+              <label className="auth-field">
+                Logradouro
+                <input
+                  type="text"
+                  name="logradouro"
+                  placeholder="Rua, avenida..."
+                  autoComplete="street-address"
+                  value={form.logradouro}
+                  onChange={(event) => onFieldChange("logradouro", event.target.value)}
+                  disabled={isSubmitting}
+                  required
+                />
+              </label>
+
+              <label className="auth-field">
+                Numero
+                <input
+                  type="text"
+                  name="numero"
+                  placeholder="123"
+                  autoComplete="address-line2"
+                  value={form.numero}
+                  onChange={(event) => onFieldChange("numero", event.target.value)}
+                  disabled={isSubmitting}
+                  required
+                />
+              </label>
+
+              <label className="auth-field">
+                Complemento (opcional)
+                <input
+                  type="text"
+                  name="complemento"
+                  placeholder="Apto, bloco, referencia"
+                  autoComplete="address-line2"
+                  value={form.complemento}
+                  onChange={(event) => onFieldChange("complemento", event.target.value)}
+                  disabled={isSubmitting}
+                />
+              </label>
+            </>
           )}
 
           <label className="auth-field">

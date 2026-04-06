@@ -5,11 +5,26 @@ import {
   parseBackendPayload,
 } from "@/app/lib/backend-api";
 
+type SignupEnderecoBody = {
+  logradouro?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
+  cep?: string;
+};
+
 type SignupBody = {
   nome?: string;
   email?: string;
   senha_hash?: string;
+  endereco?: SignupEnderecoBody;
 };
+
+function isNonEmpty(value: string | undefined): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
 
 export async function POST(request: Request) {
   try {
@@ -17,10 +32,29 @@ export async function POST(request: Request) {
     const nome = body.nome?.trim() ?? "";
     const email = body.email?.trim() ?? "";
     const senhaHash = body.senha_hash ?? "";
+    const endereco = body.endereco ?? {};
 
-    if (!nome || !email || !senhaHash) {
+    const logradouro = endereco.logradouro?.trim() ?? "";
+    const numero = endereco.numero?.trim() ?? "";
+    const complemento = endereco.complemento?.trim() ?? "";
+    const bairro = endereco.bairro?.trim() ?? "";
+    const cidade = endereco.cidade?.trim() ?? "";
+    const estado = endereco.estado?.trim() ?? "";
+    const cep = endereco.cep?.trim() ?? "";
+
+    if (
+      !nome ||
+      !email ||
+      !senhaHash ||
+      !logradouro ||
+      !numero ||
+      !bairro ||
+      !cidade ||
+      !estado ||
+      !cep
+    ) {
       return NextResponse.json(
-        { message: "Nome, e-mail e senha são obrigatórios." },
+        { message: "Nome, e-mail, senha e endereco completo sao obrigatorios." },
         { status: 400 },
       );
     }
@@ -34,6 +68,15 @@ export async function POST(request: Request) {
         nome,
         email,
         senha_hash: senhaHash,
+        endereco: {
+          logradouro,
+          numero,
+          complemento: isNonEmpty(complemento) ? complemento : null,
+          bairro,
+          cidade,
+          estado,
+          cep,
+        },
       }),
       cache: "no-store",
     });
@@ -42,7 +85,7 @@ export async function POST(request: Request) {
 
     if (!backendResponse.ok) {
       const message =
-        getBackendErrorMessage(payload) ?? "Não foi possível concluir o cadastro.";
+        getBackendErrorMessage(payload) ?? "Nao foi possivel concluir o cadastro.";
 
       return NextResponse.json({ message }, { status: backendResponse.status });
     }
