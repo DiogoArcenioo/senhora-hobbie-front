@@ -21,12 +21,14 @@ type AuthUser = {
   id?: string;
   nome: string;
   email: string;
+  tipo?: string;
 };
 
 type AuthPayloadUser = {
   id?: string;
   nome?: string;
   email?: string;
+  tipo?: string;
 };
 
 type AuthPayload = {
@@ -47,12 +49,14 @@ type ToastMessage = {
 type JwtPayload = {
   sub?: string;
   email?: string;
+  tipo?: string;
 };
 
 type MeResponse = {
   id?: string;
   nome?: string;
   email?: string;
+  tipo?: string;
 };
 
 const TOAST_DURATION_MS = 4200;
@@ -120,6 +124,7 @@ function readStoredUser(): AuthUser | null {
         id: typeof parsedValue.id === "string" && parsedValue.id.trim() ? parsedValue.id : undefined,
         nome: parsedValue.nome.trim(),
         email: parsedValue.email.trim(),
+        tipo: typeof parsedValue.tipo === "string" ? parsedValue.tipo.trim().toUpperCase() : undefined,
       };
     }
   } catch {
@@ -147,6 +152,7 @@ function resolveAuthenticatedUser(
     id: payloadUser && typeof payloadUser.id === "string" ? payloadUser.id : undefined,
     nome,
     email,
+    tipo: payloadUser && typeof payloadUser.tipo === "string" ? payloadUser.tipo.trim().toUpperCase() : undefined,
   };
 }
 
@@ -168,6 +174,7 @@ async function fetchAuthenticatedUser(token: string, tokenType: string): Promise
 
     const nome = typeof mePayload.nome === "string" ? mePayload.nome.trim() : "";
     const email = typeof mePayload.email === "string" ? mePayload.email.trim() : "";
+    const tipo = typeof mePayload.tipo === "string" ? mePayload.tipo.trim().toUpperCase() : undefined;
 
     if (!nome) {
       return null;
@@ -177,6 +184,7 @@ async function fetchAuthenticatedUser(token: string, tokenType: string): Promise
       id: typeof mePayload.id === "string" ? mePayload.id : undefined,
       nome,
       email,
+      tipo,
     };
   } catch {
     return null;
@@ -223,10 +231,28 @@ export default function HeaderAuthActions() {
       if (userFromApi) {
         localStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(userFromApi));
         setAuthenticatedUser(userFromApi);
+        emitAuthSessionChanged();
         return;
       }
 
       if (userFromStorage) {
+        const tokenPayload = decodeJwtPayload(token);
+
+        if (
+          !userFromStorage.tipo &&
+          typeof tokenPayload?.tipo === "string" &&
+          tokenPayload.tipo.trim()
+        ) {
+          const syncedUser = {
+            ...userFromStorage,
+            tipo: tokenPayload.tipo.trim().toUpperCase(),
+          };
+
+          localStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(syncedUser));
+          setAuthenticatedUser(syncedUser);
+          emitAuthSessionChanged();
+        }
+
         return;
       }
 
@@ -235,10 +261,15 @@ export default function HeaderAuthActions() {
         id: typeof tokenPayload?.sub === "string" ? tokenPayload.sub : undefined,
         nome: "Minha conta",
         email: typeof tokenPayload?.email === "string" ? tokenPayload.email : "",
+        tipo:
+          typeof tokenPayload?.tipo === "string" && tokenPayload.tipo.trim()
+            ? tokenPayload.tipo.trim().toUpperCase()
+            : undefined,
       };
 
       localStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(fallbackUser));
       setAuthenticatedUser(fallbackUser);
+      emitAuthSessionChanged();
     };
 
     void hydrateAuthenticatedUser();

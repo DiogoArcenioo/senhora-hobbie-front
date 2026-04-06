@@ -1,6 +1,7 @@
 ﻿import Image from "next/image";
 import Link from "next/link";
 import HeaderAuthActions from "./components/header-auth-actions";
+import HomeFeaturedImage from "./components/home-featured-image";
 import HeaderNavigation from "./components/header-navigation";
 import HomeHeroSlider from "./components/home-hero-slider";
 import HomeIntroOverlay from "./components/home-intro-overlay";
@@ -52,6 +53,28 @@ export default function Home() {
               <p>{card.description}</p>
             </article>
           ))}
+        </section>
+
+        <section className="home-about reveal reveal-4" id="quem-somos">
+          <div className="about-copy">
+            <p className="about-kicker">Quem Somos</p>
+            <h2>Um clube criativo feito para mulheres que querem criar com leveza.</h2>
+            <p>
+              O Clube das Jovens Senhoras nasceu para transformar o tempo livre em um ritual de
+              autocuidado, arte e conexão. A cada edição, montamos experiências acolhedoras para
+              você explorar novos hobbies no seu ritmo.
+            </p>
+          </div>
+
+          <HomeFeaturedImage />
+        </section>
+
+        <section className="home-contact reveal reveal-4" id="contato">
+          <p className="contact-kicker">Contato</p>
+          <h2>Fale com a gente!</h2>
+          <a className="contact-phone" href="tel:+5548991644082">
+            48 9164-4082
+          </a>
         </section>
       </main>
     </div>

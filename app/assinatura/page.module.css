@@ -122,6 +122,22 @@
   justify-self: start;
 }
 
+.adminActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.planAdminRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.planEditButton {
+  margin-left: auto;
+}
+
 .planInactiveLabel {
   margin-top: 0.2rem;
   color: var(--color-text-soft);
@@ -129,6 +145,122 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(28, 8, 11, 0.45);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.modalCard {
+  width: min(920px, 100%);
+  max-height: 88vh;
+  overflow: auto;
+  border: 1px solid rgba(208, 100, 102, 0.3);
+  border-radius: 1rem;
+  background: #fffaf8;
+  box-shadow: 0 22px 46px rgba(40, 8, 12, 0.28);
+  padding: 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.modalHeader h3 {
+  margin: 0;
+  color: var(--color-brand-red);
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.5rem;
+}
+
+.modalClose {
+  border: 1px solid rgba(208, 100, 102, 0.35);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-brand-red);
+  font: inherit;
+  font-weight: 700;
+  padding: 0.3rem 0.78rem;
+  cursor: pointer;
+}
+
+.modalFormGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.6rem;
+}
+
+.modalFormGrid label {
+  display: grid;
+  gap: 0.24rem;
+  color: var(--color-brand-red);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.modalFormGrid input,
+.modalFormGrid textarea {
+  border: 1px solid rgba(208, 100, 102, 0.34);
+  border-radius: 0.65rem;
+  background: #fff;
+  color: var(--color-text);
+  font: inherit;
+  padding: 0.52rem 0.64rem;
+}
+
+.modalFormGrid textarea {
+  min-height: 86px;
+  resize: vertical;
+}
+
+.checkboxLabel {
+  align-self: end;
+  display: flex !important;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.checkboxLabel input {
+  width: auto;
+}
+
+.descriptionLabel {
+  grid-column: 1 / -1;
+}
+
+.modalError {
+  margin: 0;
+  border: 1px solid rgba(145, 23, 36, 0.25);
+  border-radius: 0.6rem;
+  background: rgba(145, 23, 36, 0.08);
+  color: #911724;
+  padding: 0.55rem 0.7rem;
+}
+
+.modalSuccess {
+  margin: 0;
+  border: 1px solid rgba(39, 101, 58, 0.25);
+  border-radius: 0.6rem;
+  background: rgba(39, 101, 58, 0.08);
+  color: #27653a;
+  padding: 0.55rem 0.7rem;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.55rem;
 }
 
 .perks {
