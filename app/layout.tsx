@@ -18,6 +18,11 @@ export const metadata: Metadata = {
   title: "Clube das Jovens Senhoras",
   description:
     "Clube criativo para transformar o hobby em um ritual delicado no dia a dia.",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/favicon.ico",
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({
