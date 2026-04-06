@@ -36,6 +36,7 @@ const LOGGED_IN_ADMIN_LINKS: NavLink[] = [
   { href: "/eventos", label: "Eventos" },
   { href: "/produtos", label: "Produtos" },
   { href: "/assinatura", label: "Assinatura" },
+  { href: "/admin/vendas", label: "Vendas" },
   { href: "/admin/hero-slider", label: "Admin" },
   { href: "/admin/gestao-assinaturas", label: "Gestao Assinaturas" },
   { href: "/#contato", label: "Contato" },

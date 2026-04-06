@@ -1,0 +1,158 @@
+.panel {
+  border-radius: 1.4rem;
+  border: 1px solid rgba(208, 100, 102, 0.28);
+  background: rgba(255, 248, 245, 0.94);
+  box-shadow: 0 16px 34px rgba(168, 25, 33, 0.12);
+  padding: clamp(1rem, 3vw, 1.6rem);
+  display: grid;
+  gap: 0.85rem;
+}
+
+.kicker {
+  margin: 0;
+  color: var(--color-brand-red-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.panel h1 {
+  margin: 0;
+  color: var(--color-brand-red);
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(2rem, 4.4vw, 2.6rem);
+  line-height: 0.95;
+}
+
+.description {
+  margin: 0;
+  color: var(--color-text-soft);
+  line-height: 1.45;
+  max-width: 64ch;
+}
+
+.feedback {
+  margin: 0;
+  color: var(--color-text-soft);
+  line-height: 1.4;
+}
+
+.feedbackError {
+  color: #8e0f16;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.72rem;
+}
+
+.card {
+  border: 1px solid rgba(208, 100, 102, 0.22);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 24px rgba(168, 25, 33, 0.08);
+  padding: 0.9rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.card span {
+  color: var(--color-brand-red-soft);
+  font-size: 0.77rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.card strong {
+  color: var(--color-brand-red);
+  font-size: clamp(1.6rem, 2.6vw, 2rem);
+  line-height: 1;
+}
+
+.card small {
+  color: var(--color-text-soft);
+  font-size: 0.8rem;
+}
+
+.listPanel {
+  margin-top: 0.8rem;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(208, 100, 102, 0.25);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 28px rgba(168, 25, 33, 0.08);
+  padding: 0.9rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.listHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.listHeader p {
+  margin: 0;
+  color: var(--color-brand-red-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.listHeader h2 {
+  margin: 0;
+  color: var(--color-brand-red);
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  line-height: 1;
+}
+
+.empty {
+  margin: 0;
+  color: var(--color-text-soft);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.item {
+  border: 1px solid rgba(208, 100, 102, 0.22);
+  border-radius: 0.9rem;
+  background: #fff;
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.42rem;
+}
+
+.itemRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.itemRow strong {
+  color: var(--color-brand-red);
+  font-size: 0.95rem;
+}
+
+.itemRow span {
+  color: var(--color-text-soft);
+  font-size: 0.88rem;
+}
+
+@media (max-width: 980px) {
+  .cards {
+    grid-template-columns: 1fr;
+  }
+}
