@@ -18,6 +18,7 @@ type NavLink = {
 const LOGGED_OUT_LINKS: NavLink[] = [
   { href: "/", label: "Inicio" },
   { href: "/eventos", label: "Eventos" },
+  { href: "/produtos", label: "Produtos" },
   { href: "/como-funciona", label: "Como Funciona" },
   { href: "/#contato", label: "Contato" },
 ];
@@ -25,6 +26,7 @@ const LOGGED_OUT_LINKS: NavLink[] = [
 const LOGGED_IN_LINKS: NavLink[] = [
   { href: "/", label: "Inicio" },
   { href: "/eventos", label: "Eventos" },
+  { href: "/produtos", label: "Produtos" },
   { href: "/assinatura", label: "Assinatura" },
   { href: "/#contato", label: "Contato" },
 ];
@@ -32,6 +34,7 @@ const LOGGED_IN_LINKS: NavLink[] = [
 const LOGGED_IN_ADMIN_LINKS: NavLink[] = [
   { href: "/", label: "Inicio" },
   { href: "/eventos", label: "Eventos" },
+  { href: "/produtos", label: "Produtos" },
   { href: "/assinatura", label: "Assinatura" },
   { href: "/admin/hero-slider", label: "Admin" },
   { href: "/admin/gestao-assinaturas", label: "Gestao Assinaturas" },

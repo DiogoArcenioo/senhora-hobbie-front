@@ -1,0 +1,361 @@
+.page {
+  position: relative;
+  min-height: 100vh;
+  isolation: isolate;
+}
+
+.main {
+  width: min(1120px, calc(100% - 2.5rem));
+  margin: 1.8rem auto 3rem;
+  display: grid;
+  gap: 1.2rem;
+}
+
+.hero {
+  border: 1px solid rgba(208, 100, 102, 0.3);
+  border-radius: 1.1rem;
+  background: linear-gradient(145deg, rgba(255, 244, 240, 0.95), rgba(255, 250, 248, 0.98));
+  box-shadow: 0 14px 30px rgba(168, 25, 33, 0.12);
+  padding: 1.2rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.hero p {
+  margin: 0;
+  color: var(--color-brand-red-soft);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+
+.hero h1 {
+  margin: 0;
+  color: var(--color-brand-red);
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.9rem, 5vw, 2.8rem);
+  line-height: 0.95;
+}
+
+.hero span {
+  color: var(--color-text-soft);
+  line-height: 1.5;
+  max-width: 70ch;
+}
+
+.adminActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.statePanel {
+  border: 1px solid rgba(208, 100, 102, 0.24);
+  border-radius: 1rem;
+  background: rgba(255, 248, 245, 0.92);
+  box-shadow: 0 10px 22px rgba(168, 25, 33, 0.08);
+  padding: 1rem;
+  color: var(--color-text-soft);
+}
+
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.95rem;
+}
+
+.productCard {
+  border: 1px solid rgba(208, 100, 102, 0.28);
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow: 0 12px 26px rgba(168, 25, 33, 0.1);
+  padding: 1rem;
+  display: grid;
+  gap: 0.52rem;
+}
+
+.inactive {
+  opacity: 0.75;
+  border-style: dashed;
+}
+
+.productCover {
+  border: 1px solid rgba(208, 100, 102, 0.24);
+  border-radius: 0.86rem;
+  background: rgba(243, 160, 177, 0.14);
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  display: grid;
+  place-items: center;
+}
+
+.productCover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.productCover span {
+  color: var(--color-brand-red-soft);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.productCard h2 {
+  margin: 0;
+  color: var(--color-brand-red);
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.8rem;
+  line-height: 0.95;
+}
+
+.productCard strong {
+  color: var(--color-brand-red);
+  font-size: 1.2rem;
+}
+
+.productCard p {
+  margin: 0;
+  color: var(--color-text-soft);
+  line-height: 1.45;
+}
+
+.productStatus {
+  color: var(--color-brand-red-soft);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.productActions {
+  margin-top: 0.24rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.productInactiveLabel {
+  color: var(--color-text-soft);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(28, 8, 11, 0.45);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.modalCard {
+  width: min(920px, 100%);
+  max-height: 88vh;
+  overflow: auto;
+  border: 1px solid rgba(208, 100, 102, 0.3);
+  border-radius: 1rem;
+  background: #fffaf8;
+  box-shadow: 0 22px 46px rgba(40, 8, 12, 0.28);
+  padding: 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.modalHeader h3 {
+  margin: 0;
+  color: var(--color-brand-red);
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.5rem;
+}
+
+.modalClose {
+  border: 1px solid rgba(208, 100, 102, 0.35);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-brand-red);
+  font: inherit;
+  font-weight: 700;
+  padding: 0.3rem 0.78rem;
+  cursor: pointer;
+}
+
+.modalFormGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.6rem;
+}
+
+.modalFormGrid label {
+  display: grid;
+  gap: 0.24rem;
+  color: var(--color-brand-red);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.modalFormGrid input,
+.modalFormGrid textarea {
+  border: 1px solid rgba(208, 100, 102, 0.34);
+  border-radius: 0.65rem;
+  background: #fff;
+  color: var(--color-text);
+  font: inherit;
+  padding: 0.52rem 0.64rem;
+}
+
+.modalFormGrid textarea {
+  min-height: 86px;
+  resize: vertical;
+}
+
+.checkboxLabel {
+  align-self: end;
+  display: flex !important;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.checkboxLabel input {
+  width: auto;
+}
+
+.descriptionLabel {
+  grid-column: 1 / -1;
+}
+
+.existingPhotosBlock {
+  display: grid;
+  gap: 0.48rem;
+}
+
+.existingPhotosBlock strong {
+  color: var(--color-brand-red);
+}
+
+.existingPhotosBlock p {
+  margin: 0;
+  color: var(--color-text-soft);
+  font-weight: 500;
+}
+
+.existingPhotosGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 0.5rem;
+}
+
+.existingPhotoItem {
+  border: 1px solid rgba(208, 100, 102, 0.24);
+  border-radius: 0.7rem;
+  padding: 0.35rem;
+  background: #fff;
+  display: grid;
+  gap: 0.36rem;
+}
+
+.marked {
+  opacity: 0.62;
+}
+
+.existingPhotoItem img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 0.52rem;
+}
+
+.existingPhotoItem button {
+  border: 1px solid rgba(168, 25, 33, 0.32);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-brand-red);
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 0.26rem 0.5rem;
+  cursor: pointer;
+}
+
+.modalError {
+  margin: 0;
+  border: 1px solid rgba(145, 23, 36, 0.25);
+  border-radius: 0.6rem;
+  background: rgba(145, 23, 36, 0.08);
+  color: #911724;
+  padding: 0.55rem 0.7rem;
+}
+
+.modalSuccess {
+  margin: 0;
+  border: 1px solid rgba(39, 101, 58, 0.25);
+  border-radius: 0.6rem;
+  background: rgba(39, 101, 58, 0.08);
+  color: #27653a;
+  padding: 0.55rem 0.7rem;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.55rem;
+}
+
+.perks {
+  border: 1px solid rgba(208, 100, 102, 0.24);
+  border-radius: 1rem;
+  background: rgba(255, 248, 245, 0.92);
+  box-shadow: 0 10px 22px rgba(168, 25, 33, 0.08);
+  padding: 0.95rem 1rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.perks h3 {
+  margin: 0;
+  color: var(--color-brand-red);
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.55rem;
+}
+
+.perkList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.perkList span {
+  border-radius: 999px;
+  border: 1px solid rgba(208, 100, 102, 0.28);
+  background: #fff;
+  color: var(--color-brand-red);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.42rem 0.75rem;
+}
+
+@media (max-width: 900px) {
+  .main {
+    width: min(1120px, calc(100% - 1.4rem));
+  }
+
+  .productGrid {
+    grid-template-columns: 1fr;
+  }
+}
+

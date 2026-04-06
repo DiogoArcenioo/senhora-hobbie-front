@@ -163,62 +163,64 @@ function normalizeProdutos(payload: unknown): Produto[] {
     return [];
   }
 
-  return payload
-    .map((item) => {
-      if (!item || typeof item !== "object") {
-        return null;
-      }
+  const produtosNormalizados: Produto[] = [];
 
-      const raw = item as Record<string, unknown>;
-      const id = typeof raw.id === "string" ? raw.id.trim() : "";
-      const nome = typeof raw.nome === "string" ? raw.nome.trim() : "";
-      const preco = typeof raw.preco === "string" ? raw.preco : "";
-      const moeda = typeof raw.moeda === "string" ? raw.moeda : "BRL";
+  for (const item of payload) {
+    if (!item || typeof item !== "object") {
+      continue;
+    }
 
-      if (!id || !nome || !preco) {
-        return null;
-      }
+    const raw = item as Record<string, unknown>;
+    const id = typeof raw.id === "string" ? raw.id.trim() : "";
+    const nome = typeof raw.nome === "string" ? raw.nome.trim() : "";
+    const preco = typeof raw.preco === "string" ? raw.preco : "";
+    const moeda = typeof raw.moeda === "string" ? raw.moeda : "BRL";
 
-      const fotos = Array.isArray(raw.fotos)
-        ? raw.fotos
-            .map((foto) => {
-              if (!foto || typeof foto !== "object") {
-                return null;
-              }
+    if (!id || !nome || !preco) {
+      continue;
+    }
 
-              const fotoRaw = foto as Record<string, unknown>;
-              const fotoId = typeof fotoRaw.id === "string" ? fotoRaw.id.trim() : "";
-              const fotoUrl = typeof fotoRaw.url === "string" ? fotoRaw.url.trim() : "";
-              const ordem = typeof fotoRaw.ordem === "number" ? fotoRaw.ordem : 0;
+    const fotos: ProdutoFoto[] | undefined = Array.isArray(raw.fotos)
+      ? raw.fotos
+          .map((foto) => {
+            if (!foto || typeof foto !== "object") {
+              return null;
+            }
 
-              if (!fotoId || !fotoUrl) {
-                return null;
-              }
+            const fotoRaw = foto as Record<string, unknown>;
+            const fotoId = typeof fotoRaw.id === "string" ? fotoRaw.id.trim() : "";
+            const fotoUrl = typeof fotoRaw.url === "string" ? fotoRaw.url.trim() : "";
+            const ordem = typeof fotoRaw.ordem === "number" ? fotoRaw.ordem : 0;
 
-              return {
-                id: fotoId,
-                url: fotoUrl,
-                legenda:
-                  typeof fotoRaw.legenda === "string" && fotoRaw.legenda.trim() ? fotoRaw.legenda.trim() : null,
-                ordem,
-              };
-            })
-            .filter((foto): foto is ProdutoFoto => foto !== null)
-        : undefined;
+            if (!fotoId || !fotoUrl) {
+              return null;
+            }
 
-      return {
-        id,
-        nome,
-        descricao: typeof raw.descricao === "string" && raw.descricao.trim() ? raw.descricao.trim() : null,
-        preco,
-        moeda,
-        capaUrl: typeof raw.capaUrl === "string" && raw.capaUrl.trim() ? raw.capaUrl.trim() : null,
-        slug: typeof raw.slug === "string" ? raw.slug : undefined,
-        ativo: typeof raw.ativo === "boolean" ? raw.ativo : undefined,
-        fotos,
-      };
-    })
-    .filter((produto): produto is Produto => produto !== null);
+            return {
+              id: fotoId,
+              url: fotoUrl,
+              legenda:
+                typeof fotoRaw.legenda === "string" && fotoRaw.legenda.trim() ? fotoRaw.legenda.trim() : null,
+              ordem,
+            };
+          })
+          .filter((foto): foto is ProdutoFoto => foto !== null)
+      : undefined;
+
+    produtosNormalizados.push({
+      id,
+      nome,
+      descricao: typeof raw.descricao === "string" && raw.descricao.trim() ? raw.descricao.trim() : null,
+      preco,
+      moeda,
+      capaUrl: typeof raw.capaUrl === "string" && raw.capaUrl.trim() ? raw.capaUrl.trim() : null,
+      slug: typeof raw.slug === "string" ? raw.slug : undefined,
+      ativo: typeof raw.ativo === "boolean" ? raw.ativo : undefined,
+      fotos,
+    });
+  }
+
+  return produtosNormalizados;
 }
 
 function mapProdutoToFormState(produto: Produto): ProdutoFormState {
@@ -281,6 +283,22 @@ export default function ProductsCatalog() {
       });
 
       const payload = (await response.json().catch(() => null)) as unknown;
+
+      if (!response.ok && shouldLoadAdmin && (response.status === 401 || response.status === 403)) {
+        const publicResponse = await fetch("/api/produtos", {
+          method: "GET",
+          cache: "no-store",
+        });
+        const publicPayload = (await publicResponse.json().catch(() => null)) as unknown;
+
+        if (!publicResponse.ok) {
+          throw new Error(resolveErrorMessage(publicPayload, "Nao foi possivel carregar os produtos."));
+        }
+
+        setProdutos(normalizeProdutos(publicPayload));
+        setErrorMessage("");
+        return;
+      }
 
       if (!response.ok) {
         throw new Error(resolveErrorMessage(payload, "Nao foi possivel carregar os produtos."));
@@ -360,6 +378,12 @@ export default function ProductsCatalog() {
       return;
     }
 
+    setIsModalOpen(false);
+    setModalError("");
+    setModalSuccess("");
+  };
+
+  const forceCloseModal = () => {
     setIsModalOpen(false);
     setModalError("");
     setModalSuccess("");
@@ -483,7 +507,7 @@ export default function ProductsCatalog() {
           photosInputRef.current.value = "";
         }
       } else {
-        closeModal();
+        forceCloseModal();
       }
     } catch (error) {
       setModalError(
@@ -534,7 +558,7 @@ export default function ProductsCatalog() {
 
       await loadProdutos(true);
       setModalSuccess("Produto inativado com sucesso.");
-      closeModal();
+      forceCloseModal();
     } catch (error) {
       setModalError(
         error instanceof Error && error.message
