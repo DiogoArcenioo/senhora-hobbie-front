@@ -13,13 +13,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ message: "Token nao informado." }, { status: 401 });
     }
 
-    const requestUrl = new URL(request.url);
-    const statusEnvio = requestUrl.searchParams.get("statusEnvio")?.trim();
-    const backendPath = statusEnvio
-      ? `/admin/vendas?statusEnvio=${encodeURIComponent(statusEnvio)}`
-      : "/admin/vendas";
-
-    const backendResponse = await fetch(buildBackendUrl(backendPath), {
+    const backendResponse = await fetch(buildBackendUrl("/usuarios/me/compras"), {
       method: "GET",
       headers: {
         Authorization: authorizationHeader,
@@ -30,14 +24,14 @@ export async function GET(request: Request) {
     const payload = await parseBackendPayload(backendResponse);
 
     if (!backendResponse.ok) {
-      const message = getBackendErrorMessage(payload) ?? "Nao foi possivel consultar as vendas.";
+      const message = getBackendErrorMessage(payload) ?? "Nao foi possivel consultar as compras.";
       return NextResponse.json({ message }, { status: backendResponse.status });
     }
 
     return NextResponse.json(payload, { status: backendResponse.status });
   } catch {
     return NextResponse.json(
-      { message: "Erro inesperado ao consultar as vendas." },
+      { message: "Erro inesperado ao consultar as compras." },
       { status: 500 },
     );
   }

@@ -1,0 +1,202 @@
+.page {
+  position: relative;
+  min-height: 100vh;
+  isolation: isolate;
+}
+
+.main {
+  width: min(1120px, calc(100% - 2.5rem));
+  margin: 1.8rem auto 3rem;
+  display: grid;
+  gap: 1.1rem;
+}
+
+.hero {
+  border: 1px solid rgba(208, 100, 102, 0.3);
+  border-radius: 1.1rem;
+  background: linear-gradient(145deg, rgba(255, 244, 240, 0.95), rgba(255, 250, 248, 0.98));
+  box-shadow: 0 14px 30px rgba(168, 25, 33, 0.12);
+  padding: 1.2rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.hero p {
+  margin: 0;
+  color: var(--color-brand-red-soft);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+
+.hero h1 {
+  margin: 0;
+  color: var(--color-brand-red);
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.9rem, 5vw, 2.6rem);
+  line-height: 0.95;
+}
+
+.hero span {
+  color: var(--color-text-soft);
+  line-height: 1.5;
+  max-width: 70ch;
+}
+
+.panel {
+  border-radius: 1.1rem;
+  border: 1px solid rgba(208, 100, 102, 0.28);
+  background: rgba(255, 248, 245, 0.94);
+  box-shadow: 0 14px 30px rgba(168, 25, 33, 0.1);
+  padding: 1.1rem;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.panelHeader p {
+  margin: 0;
+  color: var(--color-brand-red-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.panelHeader h2 {
+  margin: 0;
+  color: var(--color-brand-red);
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.4rem, 3vw, 1.8rem);
+  line-height: 1;
+}
+
+.feedback {
+  margin: 0;
+  color: var(--color-text-soft);
+  line-height: 1.4;
+}
+
+.feedbackError {
+  color: #8e0f16;
+  font-weight: 600;
+}
+
+.feedbackSuccess {
+  color: #27653a;
+  font-weight: 600;
+}
+
+.feedbackWarning {
+  border: 1px solid rgba(208, 100, 102, 0.4);
+  background: rgba(255, 244, 240, 0.85);
+  color: var(--color-brand-red);
+  border-radius: 0.7rem;
+  padding: 0.7rem 0.9rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.form {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.form label {
+  display: grid;
+  gap: 0.24rem;
+  color: var(--color-brand-red);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.form input {
+  border: 1px solid rgba(208, 100, 102, 0.34);
+  border-radius: 0.65rem;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  padding: 0.52rem 0.66rem;
+}
+
+.fullRow {
+  grid-column: 1 / -1;
+}
+
+.formActions {
+  display: flex;
+  gap: 0.55rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.item {
+  border: 1px solid rgba(208, 100, 102, 0.22);
+  border-radius: 0.95rem;
+  background: #fff;
+  padding: 0.85rem;
+  display: grid;
+  gap: 0.42rem;
+}
+
+.itemRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.itemRow strong {
+  color: var(--color-brand-red);
+  font-size: 0.98rem;
+}
+
+.itemRow span {
+  color: var(--color-text-soft);
+  font-size: 0.88rem;
+}
+
+.statusBadge {
+  padding: 0.22rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.statusPendente {
+  background: #d06466;
+}
+
+.statusEnviado {
+  background: #2a7a45;
+}
+
+.statusEntregue {
+  background: #1f4f7a;
+}
+
+.empty {
+  margin: 0;
+  color: var(--color-text-soft);
+}

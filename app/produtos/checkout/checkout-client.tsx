@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { TOKEN_STORAGE_KEY, TOKEN_TYPE_STORAGE_KEY } from "@/app/lib/auth-session";
 import styles from "./page.module.css";
@@ -88,6 +89,7 @@ function normalizeProduto(payload: unknown): Produto | null {
 }
 
 export default function CheckoutClient({ produtoId }: CheckoutClientProps) {
+  const router = useRouter();
   const [produto, setProduto] = useState<Produto | null>(null);
   const [isLoadingProduto, setIsLoadingProduto] = useState(true);
   const [isCreatingCheckout, setIsCreatingCheckout] = useState(false);
@@ -165,15 +167,54 @@ export default function CheckoutClient({ produtoId }: CheckoutClientProps) {
       return;
     }
 
+    const authorizationHeader = `${tokenType} ${token}`;
+
     setIsCreatingCheckout(true);
     setErrorMessage("");
 
     try {
+      const enderecoResponse = await fetch("/api/usuarios/me/endereco", {
+        method: "GET",
+        headers: { Authorization: authorizationHeader },
+        cache: "no-store",
+      });
+
+      if (enderecoResponse.status === 401) {
+        setErrorMessage("Sessao expirada. Faca login novamente para continuar.");
+        setIsCreatingCheckout(false);
+        return;
+      }
+
+      if (enderecoResponse.status === 404) {
+        setErrorMessage("Cadastre seu endereco de entrega antes de comprar. Redirecionando...");
+        router.push("/minhas-compras");
+        return;
+      }
+
+      if (!enderecoResponse.ok) {
+        const enderecoPayload = (await enderecoResponse.json().catch(() => null)) as unknown;
+        throw new Error(resolveErrorMessage(enderecoPayload, "Nao foi possivel validar seu endereco."));
+      }
+
+      const enderecoPayload = (await enderecoResponse.json().catch(() => null)) as Record<string, unknown> | null;
+      const requiredFields = ["logradouro", "numero", "bairro", "cidade", "estado", "cep"] as const;
+      const hasEnderecoCompleto = !!enderecoPayload &&
+        requiredFields.every((field) => {
+          const value = enderecoPayload[field];
+          return typeof value === "string" && value.trim().length > 0;
+        });
+
+      if (!hasEnderecoCompleto) {
+        setErrorMessage("Complete seu endereco de entrega antes de comprar. Redirecionando...");
+        router.push("/minhas-compras");
+        return;
+      }
+
       const response = await fetch("/api/pagamentos/produtos/checkout-pro", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `${tokenType} ${token}`,
+          Authorization: authorizationHeader,
         },
         body: JSON.stringify({ produtoId: produto.id }),
       });
