@@ -29,12 +29,16 @@ type GestaoAssinaturaItem = {
   dataInicio: string | null;
   proximaCobrancaEm: string | null;
   createdAt: string;
+  gateway: string | null;
+  gatewayAssinaturaId: string | null;
+  renovacaoAutomatica: boolean;
 };
 
 type GestaoAssinaturasPayload = {
   resumo?: {
     assinaturasAtivas?: unknown;
     novasAssinaturasMesAtual?: unknown;
+    receitaMensalEstimada?: unknown;
     mesReferencia?: unknown;
   };
   assinaturasAtivas?: unknown;
@@ -48,6 +52,7 @@ type DashboardData = {
   resumo: {
     assinaturasAtivas: number;
     novasAssinaturasMesAtual: number;
+    receitaMensalEstimada: number;
     mesReferencia: string;
   };
 };
@@ -58,6 +63,7 @@ const EMPTY_DASHBOARD: DashboardData = {
   resumo: {
     assinaturasAtivas: 0,
     novasAssinaturasMesAtual: 0,
+    receitaMensalEstimada: 0,
     mesReferencia: "",
   },
 };
@@ -176,6 +182,12 @@ function parseAssinaturaItem(raw: unknown): GestaoAssinaturaItem | null {
     proximaCobrancaEm:
       typeof value.proximaCobrancaEm === "string" && value.proximaCobrancaEm.trim() ? value.proximaCobrancaEm.trim() : null,
     createdAt,
+    gateway: typeof value.gateway === "string" && value.gateway.trim() ? value.gateway.trim() : null,
+    gatewayAssinaturaId:
+      typeof value.gatewayAssinaturaId === "string" && value.gatewayAssinaturaId.trim()
+        ? value.gatewayAssinaturaId.trim()
+        : null,
+    renovacaoAutomatica: value.renovacaoAutomatica === true || value.renovacaoAutomatica === undefined,
   };
 }
 
@@ -199,6 +211,13 @@ function sanitizeDashboardPayload(payload: GestaoAssinaturasPayload | null): Das
     typeof resumoRaw?.novasAssinaturasMesAtual === "number"
       ? resumoRaw.novasAssinaturasMesAtual
       : novasAssinaturasMesAtual.length;
+  const receitaMensalEstimada =
+    typeof resumoRaw?.receitaMensalEstimada === "number" && Number.isFinite(resumoRaw.receitaMensalEstimada)
+      ? resumoRaw.receitaMensalEstimada
+      : assinaturasAtivas.reduce((total, item) => {
+          const valor = Number(item.planoValor ?? "0");
+          return Number.isFinite(valor) ? total + valor : total;
+        }, 0);
   const mesReferencia =
     typeof resumoRaw?.mesReferencia === "string" && resumoRaw.mesReferencia.trim()
       ? resumoRaw.mesReferencia.trim()
@@ -210,6 +229,7 @@ function sanitizeDashboardPayload(payload: GestaoAssinaturasPayload | null): Das
     resumo: {
       assinaturasAtivas: assinaturasAtivasResumo,
       novasAssinaturasMesAtual: novasAssinaturasResumo,
+      receitaMensalEstimada,
       mesReferencia,
     },
   };
@@ -280,40 +300,99 @@ function formatReferenceMonth(referenceMonth: string): string {
   }).format(date);
 }
 
+function formatGatewayLabel(gateway: string | null): string {
+  if (!gateway) {
+    return "Nao informado";
+  }
+
+  if (gateway === "MERCADO_PAGO_SUBSCRIPTION") {
+    return "Assinatura recorrente (MP)";
+  }
+
+  if (gateway === "MERCADO_PAGO") {
+    return "Checkout Mercado Pago";
+  }
+
+  return gateway;
+}
+
+type SubscriptionListProps = {
+  items: GestaoAssinaturaItem[];
+  emptyMessage: string;
+  onSync?: (item: GestaoAssinaturaItem) => void;
+  onCancel?: (item: GestaoAssinaturaItem) => void;
+  pendingActionId?: string | null;
+};
+
 function SubscriptionList({
   items,
   emptyMessage,
-}: {
-  items: GestaoAssinaturaItem[];
-  emptyMessage: string;
-}) {
+  onSync,
+  onCancel,
+  pendingActionId,
+}: SubscriptionListProps) {
   if (items.length === 0) {
     return <p className="subscription-management-empty">{emptyMessage}</p>;
   }
 
   return (
     <ul className="subscription-management-list">
-      {items.map((item) => (
-        <li key={item.id} className="subscription-management-item">
-          <div className="subscription-management-item-row">
-            <strong>{item.usuarioNome}</strong>
-            <span>{item.usuarioEmail ?? "Email nao informado"}</span>
-          </div>
+      {items.map((item) => {
+        const isPending = pendingActionId === item.id;
+        const canSync = !!onSync && item.gateway === "MERCADO_PAGO_SUBSCRIPTION" && !!item.gatewayAssinaturaId;
+        const canCancel = !!onCancel && item.status !== "CANCELLED";
 
-          <div className="subscription-management-item-row">
-            <span>{item.planoNome}</span>
-            <span>{formatCurrency(item.planoValor, item.planoMoeda)}</span>
-          </div>
+        return (
+          <li key={item.id} className="subscription-management-item">
+            <div className="subscription-management-item-row">
+              <strong>{item.usuarioNome}</strong>
+              <span>{item.usuarioEmail ?? "Email nao informado"}</span>
+            </div>
 
-          <div className="subscription-management-item-row">
-            <span>Inicio: {formatDateTime(item.dataInicio ?? item.createdAt)}</span>
-            <span>
-              Proxima cobranca:{" "}
-              {item.proximaCobrancaEm ? formatDateTime(item.proximaCobrancaEm) : "Nao definida"}
-            </span>
-          </div>
-        </li>
-      ))}
+            <div className="subscription-management-item-row">
+              <span>{item.planoNome}</span>
+              <span>{formatCurrency(item.planoValor, item.planoMoeda)}</span>
+            </div>
+
+            <div className="subscription-management-item-row">
+              <span>Inicio: {formatDateTime(item.dataInicio ?? item.createdAt)}</span>
+              <span>
+                Proxima cobranca: {item.proximaCobrancaEm ? formatDateTime(item.proximaCobrancaEm) : "Nao definida"}
+              </span>
+            </div>
+
+            <div className="subscription-management-item-row">
+              <span>Gateway: {formatGatewayLabel(item.gateway)}</span>
+              <span>
+                Renovacao automatica: {item.renovacaoAutomatica ? "Sim" : "Nao"}
+              </span>
+            </div>
+
+            {(canSync || canCancel) && (
+              <div className="subscription-management-item-row subscription-management-item-actions">
+                {canSync ? (
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => onSync?.(item)}
+                  >
+                    {isPending ? "Sincronizando..." : "Sincronizar agora"}
+                  </button>
+                ) : null}
+                {canCancel ? (
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => onCancel?.(item)}
+                  >
+                    {isPending ? "Processando..." : "Cancelar assinatura"}
+                  </button>
+                ) : null}
+              </div>
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -324,6 +403,10 @@ export default function SubscriptionManagementDashboard() {
   const [isNewSubscriptionsModalOpen, setIsNewSubscriptionsModalOpen] = useState(false);
   const [dashboard, setDashboard] = useState<DashboardData>(EMPTY_DASHBOARD);
   const [errorMessage, setErrorMessage] = useState("");
+  const [actionFeedback, setActionFeedback] = useState<
+    { type: "success" | "error"; message: string } | null
+  >(null);
+  const [pendingActionId, setPendingActionId] = useState<string | null>(null);
 
   const syncAdminAccess = useCallback(() => {
     const authUser = readAuthUser();
@@ -391,6 +474,76 @@ export default function SubscriptionManagementDashboard() {
     };
   }, [loadDashboard, syncAdminAccess]);
 
+  const runAction = useCallback(
+    async (item: GestaoAssinaturaItem, kind: "sync" | "cancelar") => {
+      const authorizationHeader = getAuthorizationHeader();
+
+      if (!authorizationHeader) {
+        setActionFeedback({ type: "error", message: "Sessao expirada. Faca login novamente." });
+        return;
+      }
+
+      if (kind === "cancelar") {
+        const confirmed = window.confirm(
+          `Cancelar a assinatura de ${item.usuarioNome}? O usuario perde o acesso imediatamente.`,
+        );
+
+        if (!confirmed) {
+          return;
+        }
+      }
+
+      setPendingActionId(item.id);
+      setActionFeedback(null);
+
+      try {
+        const response = await fetch(
+          `/api/admin/gestao-assinaturas/${encodeURIComponent(item.id)}/${kind}`,
+          {
+            method: "POST",
+            headers: { Authorization: authorizationHeader },
+            cache: "no-store",
+          },
+        );
+
+        const payload = (await response.json().catch(() => null)) as { message?: string } | null;
+
+        if (!response.ok) {
+          throw new Error(resolveErrorMessage(payload, "Falha ao executar acao."));
+        }
+
+        setActionFeedback({
+          type: "success",
+          message: kind === "sync" ? "Assinatura sincronizada com sucesso." : "Assinatura cancelada.",
+        });
+        await loadDashboard();
+      } catch (error) {
+        setActionFeedback({
+          type: "error",
+          message:
+            error instanceof Error && error.message ? error.message : "Erro inesperado ao executar a acao.",
+        });
+      } finally {
+        setPendingActionId(null);
+      }
+    },
+    [loadDashboard],
+  );
+
+  const handleSync = useCallback(
+    (item: GestaoAssinaturaItem) => {
+      void runAction(item, "sync");
+    },
+    [runAction],
+  );
+
+  const handleCancel = useCallback(
+    (item: GestaoAssinaturaItem) => {
+      void runAction(item, "cancelar");
+    },
+    [runAction],
+  );
+
   const referenceMonthLabel = useMemo(
     () => formatReferenceMonth(dashboard.resumo.mesReferencia),
     [dashboard.resumo.mesReferencia],
@@ -455,7 +608,29 @@ export default function SubscriptionManagementDashboard() {
             <strong>{dashboard.resumo.novasAssinaturasMesAtual}</strong>
             <small>Clique para ver quem assinou em {referenceMonthLabel}</small>
           </button>
+
+          <article className="subscription-management-card">
+            <span>Receita mensal estimada</span>
+            <strong>
+              {new Intl.NumberFormat("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+                maximumFractionDigits: 2,
+              }).format(dashboard.resumo.receitaMensalEstimada)}
+            </strong>
+            <small>Soma do valor dos planos ativos</small>
+          </article>
         </div>
+
+        {actionFeedback ? (
+          <p
+            className={`subscription-management-feedback ${
+              actionFeedback.type === "error" ? "subscription-management-feedback-error" : ""
+            }`}
+          >
+            {actionFeedback.message}
+          </p>
+        ) : null}
       </section>
 
       <section className="subscription-management-list-panel reveal reveal-2">
@@ -467,6 +642,9 @@ export default function SubscriptionManagementDashboard() {
         <SubscriptionList
           items={dashboard.assinaturasAtivas}
           emptyMessage="Nenhuma assinatura ativa encontrada."
+          onSync={handleSync}
+          onCancel={handleCancel}
+          pendingActionId={pendingActionId}
         />
       </section>
 
