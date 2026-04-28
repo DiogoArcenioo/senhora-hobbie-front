@@ -79,7 +79,7 @@ export default function Home() {
 
               <a
                 className="site-footer-contact-item"
-                href="https://wa.me/5548991644082"
+                href="https://wa.me/554891644082"
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Conversar no WhatsApp"
@@ -92,7 +92,7 @@ export default function Home() {
                     />
                   </svg>
                 </span>
-                <span>48 9164-4082</span>
+                <span>+55 48 9164-4082</span>
               </a>
             </div>
 
@@ -107,7 +107,7 @@ export default function Home() {
               <p>Redes sociais</p>
               <a
                 className="site-footer-contact-item"
-                href="https://www.instagram.com/senhora-hobbie"
+                href="https://www.instagram.com/senhorahobbie"
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Abrir perfil do Instagram"
@@ -129,7 +129,7 @@ export default function Home() {
                     <circle cx="17.3" cy="6.8" r="1.3" fill="currentColor" />
                   </svg>
                 </span>
-                <span>@senhora-hobbie</span>
+                <span>@senhorahobbie</span>
               </a>
             </div>
           </div>

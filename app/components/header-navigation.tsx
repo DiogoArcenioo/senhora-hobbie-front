@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   AUTH_SESSION_EVENT,
   AUTH_USER_STORAGE_KEY,
@@ -106,10 +106,13 @@ function hasAdminProfile(): boolean {
 }
 
 export default function HeaderNavigation() {
+  const mobileMenuId = useId();
   const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigationRef = useRef<HTMLElement | null>(null);
   const adminMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -143,20 +146,22 @@ export default function HeaderNavigation() {
   const isAdminMenuActive = ADMIN_LINKS.some((link) => isLinkActive(link.href));
 
   useEffect(() => {
-    if (!isAdminMenuOpen) {
+    if (!isAdminMenuOpen && !isMobileMenuOpen) {
       return;
     }
 
     const handleOutsideClick = (event: MouseEvent) => {
       const target = event.target as Node | null;
 
-      if (adminMenuRef.current && target && !adminMenuRef.current.contains(target)) {
+      if (navigationRef.current && target && !navigationRef.current.contains(target)) {
+        setIsMobileMenuOpen(false);
         setIsAdminMenuOpen(false);
       }
     };
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        setIsMobileMenuOpen(false);
         setIsAdminMenuOpen(false);
       }
     };
@@ -168,48 +173,73 @@ export default function HeaderNavigation() {
       window.removeEventListener("mousedown", handleOutsideClick);
       window.removeEventListener("keydown", handleEscape);
     };
-  }, [isAdminMenuOpen]);
+  }, [isAdminMenuOpen, isMobileMenuOpen]);
+
+  const closeMenus = () => {
+    setIsMobileMenuOpen(false);
+    setIsAdminMenuOpen(false);
+  };
 
   return (
-    <nav className="home-nav" aria-label="Navegacao principal">
-      {links.map((link) => (
-        <Link
-          key={link.href}
-          href={link.href}
-          className={isLinkActive(link.href) ? "is-active" : undefined}
-          onClick={() => setIsAdminMenuOpen(false)}
-        >
-          {link.label}
-        </Link>
-      ))}
+    <nav
+      ref={navigationRef}
+      className={`home-nav ${isMobileMenuOpen ? "is-mobile-open" : ""}`}
+      aria-label="Navegacao principal"
+    >
+      <button
+        type="button"
+        className="home-nav-toggle"
+        aria-label={isMobileMenuOpen ? "Fechar menu de navegacao" : "Abrir menu de navegacao"}
+        aria-expanded={isMobileMenuOpen}
+        aria-controls={mobileMenuId}
+        onClick={() => {
+          setIsMobileMenuOpen((previous) => !previous);
+          setIsAdminMenuOpen(false);
+        }}
+      >
+        <span aria-hidden="true" />
+      </button>
 
-      {isLoggedIn && isAdmin ? (
-        <div ref={adminMenuRef} className={`home-nav-admin ${isAdminMenuActive ? "is-active" : ""} ${isAdminMenuOpen ? "is-open" : ""}`}>
-          <button
-            type="button"
-            className="home-nav-admin-trigger"
-            aria-haspopup="menu"
-            aria-expanded={isAdminMenuOpen}
-            onClick={() => setIsAdminMenuOpen((previous) => !previous)}
+      <div id={mobileMenuId} className="home-nav-panel">
+        {links.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className={`home-nav-link ${isLinkActive(link.href) ? "is-active" : ""}`}
+            onClick={closeMenus}
           >
-            Admin
-          </button>
+            {link.label}
+          </Link>
+        ))}
 
-          <div className="home-nav-admin-menu" role="menu" aria-label="Acessos administrativos">
-            {ADMIN_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={isLinkActive(link.href) ? "is-active" : undefined}
-                role="menuitem"
-                onClick={() => setIsAdminMenuOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
+        {isLoggedIn && isAdmin ? (
+          <div ref={adminMenuRef} className={`home-nav-admin ${isAdminMenuActive ? "is-active" : ""} ${isAdminMenuOpen ? "is-open" : ""}`}>
+            <button
+              type="button"
+              className="home-nav-admin-trigger"
+              aria-haspopup="menu"
+              aria-expanded={isAdminMenuOpen}
+              onClick={() => setIsAdminMenuOpen((previous) => !previous)}
+            >
+              Admin
+            </button>
+
+            <div className="home-nav-admin-menu" role="menu" aria-label="Acessos administrativos">
+              {ADMIN_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={isLinkActive(link.href) ? "is-active" : undefined}
+                  role="menuitem"
+                  onClick={closeMenus}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
     </nav>
   );
 }

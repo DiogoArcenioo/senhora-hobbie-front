@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   AUTH_SESSION_EVENT,
@@ -83,6 +83,18 @@ const INITIAL_AUTH_FORM: AuthFormState = {
   numero: "",
   complemento: "",
 };
+
+function EyeIcon({ isVisible }: { isVisible: boolean }) {
+  return isVisible ? (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M2.1 3.51 3.51 2.1l18.39 18.39-1.41 1.41-3.16-3.16A11.2 11.2 0 0 1 12 20C5.5 20 2 12 2 12a19.2 19.2 0 0 1 4.11-5.6L2.1 3.51Zm5.44 4.3A15.4 15.4 0 0 0 4.25 12C5.08 13.7 7.9 18 12 18a8.7 8.7 0 0 0 3.82-.87l-2.25-2.25A3.5 3.5 0 0 1 9.12 10.43L7.54 7.81Zm3.07 3.07A1.5 1.5 0 0 0 12 14a1.55 1.55 0 0 0 .39-.05l-1.78-1.78A1.55 1.55 0 0 0 10.56 12Zm1.17-6.86L12 4c6.5 0 10 8 10 8a18.8 18.8 0 0 1-2.28 3.47l-1.43-1.43A15.6 15.6 0 0 0 19.75 12C18.92 10.3 16.1 6 12 6a8.46 8.46 0 0 0-1.48.13L8.88 4.49A10.95 10.95 0 0 1 11.78 4.02Zm2.68 5.52A3.5 3.5 0 0 1 16 12c0 .32-.04.62-.12.91l-4.79-4.79A3.52 3.52 0 0 1 14.46 9.54Z" />
+    </svg>
+  ) : (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M12 4c6.5 0 10 8 10 8s-3.5 8-10 8S2 12 2 12s3.5-8 10-8Zm0 2c-4.12 0-6.93 4.3-7.75 6 .82 1.7 3.63 6 7.75 6s6.93-4.3 7.75-6c-.82-1.7-3.63-6-7.75-6Zm0 2.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Zm0 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z" />
+    </svg>
+  );
+}
 
 function resolveErrorMessage(payload: unknown, fallbackMessage: string): string {
   if (!payload || typeof payload !== "object") {
@@ -229,11 +241,13 @@ async function fetchAuthenticatedUser(token: string, tokenType: string): Promise
 }
 
 export default function HeaderAuthActions() {
+  const passwordFieldId = useId();
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState<AuthMode>("login");
   const [signupStep, setSignupStep] = useState<SignupStep>(1);
   const [form, setForm] = useState<AuthFormState>(INITIAL_AUTH_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [authenticatedUser, setAuthenticatedUser] = useState<AuthUser | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -362,12 +376,14 @@ export default function HeaderAuthActions() {
   const resetSignupFlow = () => {
     setSignupStep(1);
     setForm(INITIAL_AUTH_FORM);
+    setIsPasswordVisible(false);
     setErrorMessage("");
   };
 
   const openModal = (nextMode: AuthMode) => {
     setMode(nextMode);
     setSignupStep(1);
+    setIsPasswordVisible(false);
     setErrorMessage("");
     setIsOpen(true);
   };
@@ -375,6 +391,7 @@ export default function HeaderAuthActions() {
   const closeModal = () => {
     setIsOpen(false);
     setSignupStep(1);
+    setIsPasswordVisible(false);
     setErrorMessage("");
   };
 
@@ -557,6 +574,36 @@ export default function HeaderAuthActions() {
   };
 
   const canUsePortal = typeof document !== "undefined";
+  const passwordToggleLabel = isPasswordVisible ? "Ocultar senha" : "Mostrar senha";
+  const renderPasswordField = (autoComplete: "current-password" | "new-password") => (
+    <div className="auth-field">
+      <label htmlFor={passwordFieldId}>Senha</label>
+      <div className="auth-password-control">
+        <input
+          id={passwordFieldId}
+          type={isPasswordVisible ? "text" : "password"}
+          name="password"
+          placeholder="Digite sua senha"
+          autoComplete={autoComplete}
+          value={form.password}
+          onChange={(event) => onFieldChange("password", event.target.value)}
+          disabled={isSubmitting}
+          required
+        />
+        <button
+          type="button"
+          className="auth-password-toggle"
+          onClick={() => setIsPasswordVisible((previous) => !previous)}
+          aria-label={passwordToggleLabel}
+          aria-pressed={isPasswordVisible}
+          title={passwordToggleLabel}
+          disabled={isSubmitting}
+        >
+          <EyeIcon isVisible={isPasswordVisible} />
+        </button>
+      </div>
+    </div>
+  );
 
   const modal = isOpen ? (
     <div
@@ -623,19 +670,7 @@ export default function HeaderAuthActions() {
                     />
                   </label>
 
-                  <label className="auth-field">
-                    Senha
-                    <input
-                      type="password"
-                      name="password"
-                      placeholder="Digite sua senha"
-                      autoComplete="new-password"
-                      value={form.password}
-                      onChange={(event) => onFieldChange("password", event.target.value)}
-                      disabled={isSubmitting}
-                      required
-                    />
-                  </label>
+                  {renderPasswordField("new-password")}
                 </>
               ) : (
                 <>
@@ -755,19 +790,7 @@ export default function HeaderAuthActions() {
                 />
               </label>
 
-              <label className="auth-field">
-                Senha
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Digite sua senha"
-                  autoComplete="current-password"
-                  value={form.password}
-                  onChange={(event) => onFieldChange("password", event.target.value)}
-                  disabled={isSubmitting}
-                  required
-                />
-              </label>
+              {renderPasswordField("current-password")}
             </>
           )}
 
@@ -778,6 +801,7 @@ export default function HeaderAuthActions() {
                 className="auth-step-secondary"
                 onClick={() => {
                   setSignupStep(1);
+                  setIsPasswordVisible(false);
                   setErrorMessage("");
                 }}
                 disabled={isSubmitting}
@@ -805,6 +829,7 @@ export default function HeaderAuthActions() {
             onClick={() => {
               setMode("login");
               setSignupStep(1);
+              setIsPasswordVisible(false);
               setErrorMessage("");
             }}
             disabled={isSubmitting}
@@ -817,6 +842,7 @@ export default function HeaderAuthActions() {
             onClick={() => {
               setMode("signup");
               setSignupStep(1);
+              setIsPasswordVisible(false);
               setErrorMessage("");
             }}
             disabled={isSubmitting}
@@ -828,12 +854,33 @@ export default function HeaderAuthActions() {
     </div>
   ) : null;
 
-  const toastStack = toasts.length > 0 ? (
-    <div className="auth-toast-stack" role="status" aria-live="polite">
-      {toasts.map((toast) => (
+  const successToasts = toasts.filter((toast) => toast.variant === "success");
+  const errorToasts = toasts.filter((toast) => toast.variant === "error");
+
+  const successToastStage = successToasts.length > 0 ? (
+    <div className="auth-toast-stage" role="status" aria-live="polite">
+      {successToasts.map((toast) => (
         <p
           key={toast.id}
-          className={`auth-toast ${toast.variant === "error" ? "auth-toast-error" : "auth-toast-success"}`}
+          className="auth-toast auth-toast-success"
+        >
+          <span className="auth-toast-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path d="M5 12.6 9.2 16.8 19 7" />
+            </svg>
+          </span>
+          <span>{toast.text}</span>
+        </p>
+      ))}
+    </div>
+  ) : null;
+
+  const errorToastStack = errorToasts.length > 0 ? (
+    <div className="auth-toast-stack" role="status" aria-live="polite">
+      {errorToasts.map((toast) => (
+        <p
+          key={toast.id}
+          className="auth-toast auth-toast-error"
         >
           {toast.text}
         </p>
@@ -866,7 +913,8 @@ export default function HeaderAuthActions() {
       </div>
 
       {canUsePortal && modal ? createPortal(modal, document.body) : null}
-      {canUsePortal && toastStack ? createPortal(toastStack, document.body) : null}
+      {canUsePortal && successToastStage ? createPortal(successToastStage, document.body) : null}
+      {canUsePortal && errorToastStack ? createPortal(errorToastStack, document.body) : null}
     </>
   );
 }
