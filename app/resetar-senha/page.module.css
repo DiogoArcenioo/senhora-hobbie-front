@@ -1,0 +1,132 @@
+.page {
+  position: relative;
+  min-height: 100vh;
+  isolation: isolate;
+}
+
+.main {
+  width: min(760px, calc(100% - 2rem));
+  margin: clamp(2rem, 7vw, 4.5rem) auto 3rem;
+}
+
+.panel {
+  border-radius: 1rem;
+  border: 1px solid rgba(208, 100, 102, 0.3);
+  background: rgba(255, 250, 248, 0.94);
+  box-shadow: 0 24px 46px rgba(89, 17, 25, 0.16);
+  padding: clamp(1.1rem, 4vw, 2rem);
+}
+
+.form,
+.stateBlock {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.kicker {
+  margin: 0;
+  color: var(--color-brand-red-soft);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.form h1,
+.stateBlock h1 {
+  margin: 0;
+  color: var(--color-brand-red);
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(2rem, 6vw, 3.15rem);
+  line-height: 0.98;
+}
+
+.stateBlock p {
+  margin: 0;
+  color: var(--color-text-soft);
+  line-height: 1.55;
+}
+
+.field {
+  display: grid;
+  gap: 0.3rem;
+  color: var(--color-brand-red);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.field input {
+  width: 100%;
+  border-radius: 0.7rem;
+  border: 1px solid rgba(208, 100, 102, 0.34);
+  background: #fff;
+  color: var(--color-text);
+  padding: 0.72rem 0.82rem;
+  font: inherit;
+  font-size: 0.96rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.field input:focus {
+  border-color: var(--color-brand-red-soft);
+  box-shadow: 0 0 0 3px rgba(243, 160, 177, 0.28);
+}
+
+.field input:disabled {
+  background: rgba(236, 206, 197, 0.22);
+  cursor: not-allowed;
+}
+
+.feedbackError {
+  margin: 0;
+  border-radius: 0.7rem;
+  border: 1px solid rgba(145, 23, 36, 0.28);
+  background: rgba(145, 23, 36, 0.08);
+  color: #8e0f16;
+  padding: 0.62rem 0.76rem;
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
+.submit {
+  width: fit-content;
+  border: 0;
+  border-radius: 999px;
+  min-height: 2.45rem;
+  padding: 0.68rem 1.15rem;
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, var(--color-brand-red) 0%, var(--color-brand-red-soft) 100%);
+  box-shadow: 0 12px 24px rgba(168, 25, 33, 0.22);
+  cursor: pointer;
+}
+
+.submit:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.loading {
+  margin: 0;
+  color: var(--color-text-soft);
+}
+
+@media (max-width: 620px) {
+  .main {
+    width: min(760px, calc(100% - 1rem));
+    margin-top: 1.4rem;
+  }
+
+  .panel {
+    padding: 1rem;
+  }
+
+  .submit {
+    width: 100%;
+  }
+}

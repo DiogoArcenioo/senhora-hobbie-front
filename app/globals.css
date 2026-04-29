@@ -605,6 +605,25 @@ a {
   cursor: progress;
 }
 
+.auth-forgot-link {
+  width: fit-content;
+  border: 0;
+  background: transparent;
+  color: var(--color-brand-red);
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 0.1rem 0;
+  text-decoration: underline;
+  text-underline-offset: 0.22rem;
+  cursor: pointer;
+}
+
+.auth-forgot-link:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .auth-step-actions {
   display: flex;
   gap: 0.5rem;

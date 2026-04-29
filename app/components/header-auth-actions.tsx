@@ -12,7 +12,7 @@ import {
   getAuthSessionToken,
 } from "@/app/lib/auth-session";
 
-type AuthMode = "login" | "signup";
+type AuthMode = "login" | "signup" | "forgot";
 type SignupStep = 1 | 2;
 
 type AuthFormState = {
@@ -452,6 +452,55 @@ export default function HeaderAuthActions() {
     const signupStepOneMissing = !name || !email || !password;
     const signupAddressMissing = !cep || !estado || !cidade || !bairro || !logradouro || !numero;
 
+    if (mode === "forgot") {
+      if (!email) {
+        setErrorMessage("Informe seu e-mail para receber o link de reset.");
+        return;
+      }
+
+      setErrorMessage("");
+      setIsSubmitting(true);
+
+      try {
+        const forgotResponse = await fetch("/api/auth/forgot-password", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        });
+
+        const forgotPayload = (await forgotResponse
+          .json()
+          .catch(() => null)) as AuthPayload | null;
+
+        if (!forgotResponse.ok) {
+          throw new Error(resolveErrorMessage(forgotPayload, "Nao foi possivel solicitar o reset de senha."));
+        }
+
+        const message = resolveErrorMessage(
+          forgotPayload,
+          "Se o e-mail estiver cadastrado, enviaremos um link para redefinir sua senha.",
+        );
+
+        setForm(INITIAL_AUTH_FORM);
+        closeModal();
+        pushToast(message);
+      } catch (error) {
+        const message =
+          error instanceof Error && error.message
+            ? error.message
+            : "Erro inesperado ao solicitar reset de senha.";
+
+        setErrorMessage(message);
+        pushToast(message, "error");
+      } finally {
+        setIsSubmitting(false);
+      }
+
+      return;
+    }
+
     if (mode === "signup" && signupStep === 1) {
       if (signupStepOneMissing) {
         setErrorMessage("Preencha nome, e-mail e senha para continuar.");
@@ -604,6 +653,14 @@ export default function HeaderAuthActions() {
       </div>
     </div>
   );
+  const modalKicker =
+    mode === "forgot"
+      ? "Recupere o acesso"
+      : mode === "login"
+        ? "Acesse sua conta"
+        : "Crie sua conta";
+  const modalTitle =
+    mode === "forgot" ? "Redefinir senha" : mode === "login" ? "Entrar" : "Cadastro";
 
   const modal = isOpen ? (
     <div
@@ -632,8 +689,8 @@ export default function HeaderAuthActions() {
           x
         </button>
 
-        <p className="auth-kicker">{mode === "login" ? "Acesse sua conta" : "Crie sua conta"}</p>
-        <h2 id="auth-modal-title">{mode === "login" ? "Entrar" : "Cadastro"}</h2>
+        <p className="auth-kicker">{modalKicker}</p>
+        <h2 id="auth-modal-title">{modalTitle}</h2>
 
         <form className="auth-form" onSubmit={handleSubmit}>
           {mode === "signup" ? (
@@ -774,6 +831,36 @@ export default function HeaderAuthActions() {
                 </>
               )}
             </>
+          ) : mode === "forgot" ? (
+            <>
+              <label className="auth-field">
+                E-mail
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="voce@email.com"
+                  autoComplete="email"
+                  value={form.email}
+                  onChange={(event) => onFieldChange("email", event.target.value)}
+                  disabled={isSubmitting}
+                  required
+                />
+              </label>
+
+              <button
+                type="button"
+                className="auth-forgot-link"
+                onClick={() => {
+                  setMode("login");
+                  setSignupStep(1);
+                  setIsPasswordVisible(false);
+                  setErrorMessage("");
+                }}
+                disabled={isSubmitting}
+              >
+                Voltar para login
+              </button>
+            </>
           ) : (
             <>
               <label className="auth-field">
@@ -791,6 +878,20 @@ export default function HeaderAuthActions() {
               </label>
 
               {renderPasswordField("current-password")}
+
+              <button
+                type="button"
+                className="auth-forgot-link"
+                onClick={() => {
+                  setMode("forgot");
+                  setSignupStep(1);
+                  setIsPasswordVisible(false);
+                  setErrorMessage("");
+                }}
+                disabled={isSubmitting}
+              >
+                Esqueci minha senha
+              </button>
             </>
           )}
 
@@ -811,7 +912,7 @@ export default function HeaderAuthActions() {
             ) : null}
 
             <button type="submit" className="auth-submit" disabled={isSubmitting}>
-              {isSubmitting ? "Aguarde..." : mode === "login" ? "Entrar" : signupStep === 1 ? "Continuar" : "Cadastrar"}
+              {isSubmitting ? "Aguarde..." : mode === "forgot" ? "Enviar link" : mode === "login" ? "Entrar" : signupStep === 1 ? "Continuar" : "Cadastrar"}
             </button>
           </div>
         </form>
